@@ -16,7 +16,7 @@ from inet.test.statistical import *
 logger = logging.getLogger(__name__)
 
 class ChartTestTask(TestTask):
-    def __init__(self, simulation_project=default_project, analysis_file_name=None, chart_name=None, name="chart test", **kwargs):
+    def __init__(self, simulation_project=None, analysis_file_name=None, chart_name=None, name="chart test", **kwargs):
         super().__init__(name=name, **kwargs)
         self.locals = locals()
         self.locals.pop("self")
@@ -68,7 +68,9 @@ class MultipleChartTestTasks(MultipleTestTasks):
         else:
             return super().run_protected(**kwargs)
 
-def get_chart_test_tasks(simulation_project=default_project, run_simulations=True, filter=None, working_directory_filter=None, pool_class=multiprocessing.Pool, **kwargs):
+def get_chart_test_tasks(simulation_project=None, run_simulations=True, filter=None, working_directory_filter=None, pool_class=multiprocessing.Pool, **kwargs):
+    if simulation_project is None:
+        simulation_project = get_default_simulation_project()
     test_tasks = []
     simulation_tasks = []
     for analysis_file_name in get_analysis_files(simulation_project=simulation_project, filter=filter or working_directory_filter, **kwargs):
@@ -141,7 +143,9 @@ class MultipleChartUpdateTasks(MultipleUpdateTasks):
         else:
             return super().run_protected(**kwargs)
 
-def get_update_chart_tasks(simulation_project=default_project, run_simulations=True, filter=None, working_directory_filter=None, pool_class=multiprocessing.Pool, **kwargs):
+def get_update_chart_tasks(simulation_project=None, run_simulations=True, filter=None, working_directory_filter=None, pool_class=multiprocessing.Pool, **kwargs):
+    if simulation_project is None:
+        simulation_project = get_default_simulation_project()
     update_tasks = []
     simulation_tasks = []
     for analysis_file_name in get_analysis_files(simulation_project=simulation_project, filter=filter or working_directory_filter, **kwargs):
@@ -157,6 +161,8 @@ def get_update_chart_tasks(simulation_project=default_project, run_simulations=T
             update_tasks.append(ChartUpdateTask(simulation_project=simulation_project, analysis_file_name=analysis_file_name, chart_name=chart.name, task_result_class=UpdateTaskResult))
     return MultipleChartUpdateTasks(tasks=update_tasks, multiple_simulation_tasks=MultipleSimulationTasks(tasks=simulation_tasks, simulation_project=simulation_project, **kwargs), pool_class=pool_class, **kwargs)
 
-def update_charts(simulation_project=default_project, pool_class=multiprocessing.Pool, **kwargs):
+def update_charts(simulation_project=None, pool_class=multiprocessing.Pool, **kwargs):
+    if simulation_project is None:
+        simulation_project = get_default_simulation_project()
     multiple_update_chart_tasks = get_update_chart_tasks(**kwargs)
     return multiple_update_chart_tasks.run(**kwargs)

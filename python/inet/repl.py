@@ -1,18 +1,9 @@
+import omnetpp
+from omnetpp.repl import *
+
 import inet
-import logging
-
 from inet import *
-#from inet.simulation.cffi import *
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-handler = logging.StreamHandler()
-handler.setFormatter(ColoredLoggingFormatter())
-
-logger.handlers = []
-logger.addHandler(handler)
-
-enable_autoreload()
+set_default_simulation_project(inet_project)
 
 print("INET Python support is loaded. Run help(inet) for more details.")
