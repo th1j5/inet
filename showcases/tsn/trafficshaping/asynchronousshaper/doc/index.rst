@@ -4,6 +4,10 @@ Asynchronous Shaping
 Goals
 -----
 
+The asynchronous traffic shaper can smooth traffic while allowing some burstiness.
+This reduces delay and increases link utilization compared to the credit-based shaper.
+Also, it doesn't require synchronized time in network nodes.
+
 In this example we demonstrate how to use the asynchronous traffic shaper.
 
 | INET version: ``4.4``
@@ -11,6 +15,39 @@ In this example we demonstrate how to use the asynchronous traffic shaper.
 
 The Model
 ---------
+
+Overview
+~~~~~~~~
+
+The asynchronous traffic shaper 
+
+Conceptually, the async shaper meters the data rate of incoming traffic, calculates an eligibility time for all packets,
+i.e. when the packet should be sent. Sending packets at their respetive eligibility time results in the shaped output traffic.
+**V1** As traffic streams are reshaped per-hop, comforming to the specified requirements, such as delay, no synchronized time is necessary.
+**V2** As traffic streams are reshaped per-hop, no synchornized time is necessary among network nodes, and channel utilization can be optimized
+at each link.
+
+The eligibility time is calculated by the asyncronous shaper algorithm. It uses a token bucket to do that.
+The shaper has two parameters that can be specified (as opposed to the one parameter of the credit-based shaper), the `committed information rate`, and the `committed burst rate`.
+The committed information rate is similar to the idle slope parameter of the credit-based shaper in that it specifies and average outgoing
+data rate that the traffic is limited to. The committed burst rate specifies that allowed burst size.
+
+In INET, the asynchronous shaper mechanism is implemented by four modules:
+
+- eligibilitytimemeter: calculates eligibility time (in bridging layer)
+- eligibilitytimefilter: filters expired packets (?)(in bridging layer)
+- eligibilitytimequeue: stores packets ordered by eligibility time (in interface)
+- eligibilitytimegate: pushes packets at the eligibility time for transmission (in interface)
+
+**how to insert**
+
+**parameters**
+
+The Configuration
+~~~~~~~~~~~~~~~~~
+
+Network
++++++++
 
 There are three network nodes in the network. The client and the server are
 :ned:`TsnDevice` modules, and the switch is a :ned:`TsnSwitch` module. The
@@ -83,6 +120,8 @@ here into a quite stable data rate.
 
 .. figure:: media/TrafficShaperOutgoingTraffic.png
    :align: center
+
+**TODO** seqchart in the beginning when there is no shaping; another at 0.1s
 
 The next diagram shows the queue lengths of the traffic classes in the outgoing
 network interface of the switch. The queue lengths increase over time because
