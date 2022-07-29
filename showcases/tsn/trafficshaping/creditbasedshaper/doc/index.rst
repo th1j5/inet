@@ -20,7 +20,7 @@ The Model
 Overview
 ~~~~~~~~
 
-   - the credit based shaper can be added to network interfaces as part of a Time aware shaper module
+..   - the credit based shaper can be added to network interfaces as part of a Time aware shaper module
    - the time aware shaper module is a queue in the network interface
    - the credit based shaper can be added as the optional transmission selection algorithm submodule of the time aware shaper
    - the credit based shaper has an IPacketGate interface/acts a packet gate module (which does what? sometimes dont let packet through?)
@@ -76,6 +76,8 @@ The credit-based shaper module takes the place of the optional ``transmissionSel
 .. initial, min and max credit count. The threshold where transmission is possible can also be specified (:par:`transmitCreditLimit`).
 
 **TODO** the number of traffic classes can be specified with the parameter of the time aware shaper -> check out the showcase -> actually earlier
+
+**TODO** is it possible to have just one cbs and not per-traffic-class? -> numTrafficClasses=1?
 
 The Configuration
 ~~~~~~~~~~~~~~~~~
@@ -168,7 +170,9 @@ best effort stream to 40 Mbps and the data rate of the video stream to 20 Mbps.
 The excess traffic is stored in the MAC layer subqueues of the corresponding
 traffic class.
 
-**V3** Traffic shaping takes place in the outgoing network interface of the switch (eth1).
+.. **V3** 
+
+Traffic shaping takes place in the outgoing network interface of the switch (eth1).
 We'll use time-aware shaper modules in the interface's MAC layer to add the credit-based shapers to (as described earlier, this is a convenient way
 to add credit-based shapers to interfaces, as the time-aware shaper provides the necessarly modules, such as queues and classifiers; also, we don't
 configure gate schedules, so there is no time-aware shaping).
@@ -214,8 +218,9 @@ The next chart compares the shaper outgoing and server application traffic:
    :align: center
 
 Similarly to the first chart, the traffic is similar, with the shaper traffic being higher due to protocol overhead.
+The traffic only changes significantly in the shaper, other parts of the network have no traffic shaping effect, as expected.
 
-**TODO** thus it only changes in the shaper
+.. **TODO** thus it only changes in the shaper
 
 The following sequence chart displays frame transmissions in the network. The best effort traffic category is colored blue, the
 video red:
