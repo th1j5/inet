@@ -19,13 +19,12 @@ The Model
 Overview
 ~~~~~~~~
 
-The asynchronous traffic shaper 
-
-Conceptually, the async shaper meters the data rate of incoming traffic, calculates an eligibility time for all packets,
-i.e. when the packet should be sent. Sending packets at their respetive eligibility time results in the shaped output traffic.
-**V1** As traffic streams are reshaped per-hop, comforming to the specified requirements, such as delay, no synchronized time is necessary.
-**V2** As traffic streams are reshaped per-hop, no synchornized time is necessary among network nodes, and channel utilization can be optimized
+Conceptually, the asynchronous traffic shaper meters the data rate of incoming traffic, and calculates an eligibility time for all packets,
+i.e. when the packet should be sent. Sending packets at their respective eligibility time results in the shaped output traffic.
+As traffic streams are reshaped per-hop, no synchornized time is necessary among network nodes, and channel utilization can be optimized
 at each link.
+
+.. **V1** As traffic streams are reshaped per-hop, comforming to the specified requirements, such as delay, no synchronized time is necessary.
 
 The eligibility time is calculated by the asyncronous shaper algorithm. It uses a token bucket to do that.
 The shaper has two parameters that can be specified (as opposed to the one parameter of the credit-based shaper), the `committed information rate`, and the `committed burst rate`.
@@ -34,14 +33,82 @@ data rate that the traffic is limited to. The committed burst rate specifies tha
 
 In INET, the asynchronous shaper mechanism is implemented by four modules:
 
-- eligibilitytimemeter: calculates eligibility time (in bridging layer)
-- eligibilitytimefilter: filters expired packets (?)(in bridging layer)
-- eligibilitytimequeue: stores packets ordered by eligibility time (in interface)
-- eligibilitytimegate: pushes packets at the eligibility time for transmission (in interface)
+- :ned:`EligibilityTimeMeter`: calculates eligibility time (in bridging layer)
+- :ned:`EligibilityTimeFilter`: filters expired packets (?)(in bridging layer)
+- :ned:`EligibilityTimeQueue`: stores packets ordered by eligibility time (in interface)
+- :ned:`EligibilityTimeGate`: pushes packets at the eligibility time for transmission (in interface)
 
-**how to insert**
+.. **how to insert**
 
-**parameters**
+Each of these modules have their place in the TSN node architecture. 
+To enable asynchronous traffic shaping in a TSN switch, for example, we need to do the following: 
+
+- The :ned:`EligibilityTimeMeter` and :ned:`EligibilityTimeFilter` modules are in the bridging layer of the switch. First, we enable ingress
+  filtering in the switch:
+
+  .. code-block:: ini
+
+     *.switch.hasIngressTrafficFiltering = true
+
+  This adds a :ned:`StreamFilterLayer` to the bridging layer. By default, this module contains a :ned:`SimpleIeee8021qFilter` module,
+  which has submodules to implement per-stream filtering and policing. **TODO** the details (like module screenshot) should be in the filtering and policing showcases?
+
+  We set the type of the meter and filter submodules: 
+
+  .. code-block:: ini
+
+     *.switch.bridging.streamFilter.ingress.meter[*].typename = "EligibilityTimeMeter"
+     *.switch.bridging.streamFilter.ingress.filter[*].typename = "EligibilityTimeFilter"
+
+- The :ned:`EligibilityTimeQueue` and :ned:`EligibilityTimeGate` is in the MAC layer of network interfaces. We enable egress traffic shaping in the switch:
+
+  .. code-block:: ini
+
+     ``*.switch.hasEgressTrafficShaping = true``
+
+  This adds a :ned:`Ieee8021qTimeAwareShaper` to the MAC layer of all interfaces. Similarly to the credit-based shaper, it is convenient to insert the
+  asynchronous shaper modules into the time-aware shaper module, as it has all the necessary submodules (e.g. queues) and a configurable number of traffic classes.
+  We just need to override some of the submodule types, namely the queue and the transmission selection algorithm:
+
+  .. code-block:: ini
+
+     *.switch.eth[*].macLayer.queue.queue[*].typename = "EligibilityTimeQueue"
+     *.switch.eth[*].macLayer.queue.transmissionSelectionAlgorithm[*].typename = "Ieee8021qAsynchronousShaper"
+
+
+
+.. The asynchronous shaper architecture outlined above is added to briding layer and interface MAC layer in the switch.
+
+.. To enable asynchronous traffic shaping in a TSN switch, for example, we need to do the following: 
+
+   - Enable ingress filtering in the switch: ``*.switch.enableIngressTrafficFiltering = true``; this adds a :ned:`StreamFilterLayer` to the bridging layer. By default, this module contains a :ned:`SimpleIeee8021qFilter` module,
+   which can implement per-stream filtering and policing:
+
+   TODO
+
+   - Set the type of the `meter` submodules (one per stream) in the stream filtering layer: ``*.switch.bridging.streamFilter.ingress.meter[*].typename = "EligibilityTimeMeter"``
+
+   - Set the :par:`committedInformationRate` and :par:`committedBurstSize` parameters of the meter submodules (one per stream):
+
+   .. code-block::
+
+      *.switch.bridging.streamFilter.ingress.meter[0].committedInformationRate = 20Mbps
+      *.switch.bridging.streamFilter.ingress.meter[0].committedBurstSize = 10000B
+
+   - Enable egress traffic shaping in the switch: ``*.switch.hasEgressTrafficShaping = true`` (this adds :ned:`Ieee8021qTimeAwareShaper` submodules the interfaces) 
+
+   - Set the queue type to async queue
+   - Set the gate type to async shaper
+
+.. **parameters**
+
+To configure the asynchronous traffic shaping, we can specify the number of traffic classes in the time-aware shaper modules, and set the following parameters
+of the asynchronous shaper:
+
+- :par:`committedInformationRate` and :par:`committedBurstSize` parameters in :ned:`EligibilityTimeMeter`. These specify the nominal outgoing data rate and the allowed burst size of the shaper
+- :par:`maxResidenceTime` parameter in :ned:`EligibilityTimeMeter`. Packets are dropped by the :ned:`EligibilityTimeFilter` if the simulation time equals ``eligibility time + max residence time``.
+
+.. note:: For other parameters of the modules making up the asynchronous shaper, check the NED documentation of the modules.
 
 The Configuration
 ~~~~~~~~~~~~~~~~~
@@ -49,12 +116,27 @@ The Configuration
 Network
 +++++++
 
-There are three network nodes in the network. The client and the server are
-:ned:`TsnDevice` modules, and the switch is a :ned:`TsnSwitch` module. The
-links between them use 100 Mbps :ned:`EthernetLink` channels.
+.. There are three network nodes in the network. The client and the server are
+   :ned:`TsnDevice` modules, and the switch is a :ned:`TsnSwitch` module. The
+   links between them use 100 Mbps :ned:`EthernetLink` channels.
+
+The network contains three network nodes. The client and the server (:ned:`TsnDevice`) are
+connected through the switch (:ned:`TsnSwitch`), with 100Mbps :ned:`EthernetLink` channels: 
 
 .. figure:: media/Network.png
    :align: center
+
+Overview
+++++++++
+
+Similarly to the credit-based shaper showcase, we configure the client to generate two streams of fluctuating traffic, and to assign them to two different traffic categories.
+We add asynchronous traffic shapers to the switch that smooths outgoing traffic for each traffic category independently.
+
+Traffic
++++++++
+
+Similarly to the Time-Aware Shaping and Credit-based Shaping showcases, we want to observe only the effect of the credit-based shaper on the traffic. 
+Thus our goal is for the traffic to only get altered in the traffic shaper, and avoid any unintended traffic shaping effect in other parts of the network.
 
 There are four applications in the network creating two independent data streams
 between the client and the server. The data rate of both streams are ~48 Mbps at
