@@ -127,6 +127,9 @@ Here is the traffic configuration:
    :end-before: outgoing streams
    :language: ini
 
+Traffic Shaping
++++++++++++++++
+
 In the client, we want the classify packets from the two packet sources into two traffic classes: best effort and video. 
 To do that, we enable IEEE 802.1 stream identification and stream encoding by setting the :par:`hasOutgoingStreams` parameter to ``true``.
 We configure the stream identifier module in the
