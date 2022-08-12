@@ -5,7 +5,7 @@
         <input pattern="/inet/showcases/tsn/trafficshaping/mixingshapers/results/*.sca"/>
     </inputs>
     <charts>
-        <chart icon="icons/full/obj/linechart.png" id="672952547" name="Client Application and Shaper Incoming Traffic" template="linechart_mpl" type="MATPLOTLIB">
+        <chart icon="icons/full/obj/linechart.png" id="1733373485" name="Client Application and Shaper Incoming Traffic" template="linechart_mpl" type="MATPLOTLIB">
             <script><![CDATA[import math
 from omnetpp.scave import results, chart, utils
 import os
@@ -57,7 +57,7 @@ legend_style = [('client application', {'linestyle': 'dashed', 'color': 'black'}
                 ('shaper incoming', {'linestyle': 'solid', 'color': 'black'}),
                 ('best effort', {'marker': 's', 'linestyle': '', 'color': default_colors[0]}),
                 ('video', {'marker': 's', 'linestyle': '', 'color': default_colors[1]}),
-                ('nominal data rate', {'linestyle': 'dotted', 'color': 'black'})]
+                ('nominal', {'linestyle': 'dotted', 'color': 'black'})]
 
 handles, labels = modifiedplot.multidimensional_legend(legend_style)
 
@@ -65,8 +65,6 @@ plt.legend(handles, labels, ncol=3)
 
 plt.axhline(y=20, color='black', linestyle='dotted', linewidth=1.5)
 plt.axhline(y=40, color='black', linestyle='dotted', linewidth=1.5)
-
-plt.tight_layout()
 
 utils.export_image_if_needed(props)
 utils.export_data_if_needed(df, props)
@@ -632,11 +630,11 @@ utils.export_data_if_needed(df, props)
             <property name="linecolor" value=""/>
             <property name="matplotlibrc.figure.facecolor" value=""/>
             <property name="legend_prefer_result_titles" value="true"/>
-            <property name="legend_manual" value="false"/>
+            <property name="legend_manual" value="true"/>
             <property name="yaxis_title" value="Data Rate [Mbps]"/>
             <property name="legend_replacements" value=""/>
             <property name="title" value="Client Application and Shaper Incoming Traffic"/>
-            <property name="legend_automatic" value="true"/>
+            <property name="legend_automatic" value="false"/>
             <property name="vector_operations" value="apply: divide_by(1000000)"/>
             <property name="cycle_seed" value="0"/>
             <property name="yaxis_log" value="false"/>
@@ -651,7 +649,7 @@ utils.export_data_if_needed(df, props)
             <property name="xaxis_min" value="0"/>
             <property name="matplotlibrc.axes.facecolor" value=""/>
             <property name="linewidth" value="1.5"/>
-            <property name="legend_format" value=""/>
+            <property name="legend_format" value="$source"/>
             <property name="filter" value="(module =~ &quot;*.switch.eth[1].macLayer.queue.queue[*]&quot; AND name =~ incomingDataRate:vector) OR&#10;(module =~ &quot;*.client.app[*].source&quot; AND name =~ dataRate:vector)"/>
             <property name="vector_start_time" value=""/>
             <property name="linestyle" value="solid"/>
@@ -662,13 +660,13 @@ utils.export_data_if_needed(df, props)
             <property name="legend_show" value="true"/>
             <property name="matplotlibrc.legend.shadow" value="false"/>
             <property name="simplify" value="false"/>
-            <property name="yaxis_max" value="60"/>
-            <property name="xaxis_max" value="1"/>
+            <property name="yaxis_max" value="70"/>
+            <property name="xaxis_max" value="10"/>
             <property name="image_export_width" value="9"/>
             <property name="matplotlibrc" value="savefig.transparent : True"/>
             <property name="include_fields" value="false"/>
         </chart>
-        <chart icon="icons/full/obj/linechart.png" id="838412207" name="Shaper Incoming And Outgoing Traffic" template="linechart_mpl" type="MATPLOTLIB">
+        <chart icon="icons/full/obj/linechart.png" id="1176282704" name="Shaper Incoming And Outgoing Traffic" template="linechart_mpl" type="MATPLOTLIB">
             <script><![CDATA[import math
 from omnetpp.scave import results, chart, utils
 import os
@@ -718,9 +716,9 @@ utils.postconfigure_plot(props)
 
 legend_style = [('incoming', {'linestyle': 'dashed', 'color': 'black'}),
                 ('outgoing', {'linestyle': 'solid', 'color': 'black'}),
-                ('best effort', {'marker': 's', 'linestyle': '', 'color': default_colors[0]}),
-                ('video', {'marker': 's', 'linestyle': '', 'color': default_colors[1]}),
-                ('nominal data rate', {'linestyle': 'dotted', 'color': 'black'})]
+                ('best effort (CBS)', {'marker': 's', 'linestyle': '', 'color': default_colors[0]}),
+                ('video (ATS)', {'marker': 's', 'linestyle': '', 'color': default_colors[1]}),
+                ('nominal', {'linestyle': 'dotted', 'color': 'black'})]
 
 handles, labels = modifiedplot.multidimensional_legend(legend_style)
 
@@ -1295,11 +1293,11 @@ utils.export_data_if_needed(df, props)
             <property name="linecolor" value=""/>
             <property name="matplotlibrc.figure.facecolor" value=""/>
             <property name="legend_prefer_result_titles" value="true"/>
-            <property name="legend_manual" value="false"/>
+            <property name="legend_manual" value="true"/>
             <property name="yaxis_title" value="Data Rate [Mbps]"/>
             <property name="legend_replacements" value=""/>
             <property name="title" value="Client Application and Shaper Incoming Traffic"/>
-            <property name="legend_automatic" value="true"/>
+            <property name="legend_automatic" value="false"/>
             <property name="vector_operations" value="apply: divide_by(1000000)"/>
             <property name="cycle_seed" value="0"/>
             <property name="yaxis_log" value="false"/>
@@ -1314,7 +1312,7 @@ utils.export_data_if_needed(df, props)
             <property name="xaxis_min" value="0"/>
             <property name="matplotlibrc.axes.facecolor" value=""/>
             <property name="linewidth" value="1.5"/>
-            <property name="legend_format" value=""/>
+            <property name="legend_format" value="$source"/>
             <property name="filter" value="module =~ &quot;*.switch.eth[1].macLayer.queue.queue[*]&quot; AND (name =~ incomingDataRate:vector OR name =~ outgoingDataRate:vector)"/>
             <property name="vector_start_time" value=""/>
             <property name="linestyle" value="solid"/>
@@ -1325,13 +1323,13 @@ utils.export_data_if_needed(df, props)
             <property name="legend_show" value="true"/>
             <property name="matplotlibrc.legend.shadow" value="false"/>
             <property name="simplify" value="false"/>
-            <property name="yaxis_max" value="60"/>
-            <property name="xaxis_max" value="1"/>
+            <property name="yaxis_max" value="70"/>
+            <property name="xaxis_max" value="10"/>
             <property name="image_export_width" value="9"/>
             <property name="matplotlibrc" value="savefig.transparent : True"/>
             <property name="include_fields" value="false"/>
         </chart>
-        <chart icon="icons/full/obj/linechart.png" id="364" name="Traffic shaper queue lengths" template="linechart_native" type="LINE">
+        <chart icon="icons/full/obj/linechart.png" id="887669584" name="Traffic shaper queue lengths" template="linechart_native" type="LINE">
             <script><![CDATA[import math
 from omnetpp.scave import results, chart, utils, ideplot
 
@@ -1966,7 +1964,7 @@ utils.export_data_if_needed(df, props)
             <property name="legend_automatic" value="true"/>
             <property name="legend_format" value=""/>
         </chart>
-        <chart icon="icons/full/obj/linechart.png" id="435" name="Transmitting state and gate states" template="linechart_separate_mpl" type="MATPLOTLIB">
+        <chart icon="icons/full/obj/linechart.png" id="1877596608" name="Transmitting state and gate states" template="linechart_separate_mpl" type="MATPLOTLIB">
             <script><![CDATA[import re
 import math
 import matplotlib.pyplot as plt
@@ -2605,7 +2603,7 @@ utils.export_data_if_needed(df, props)]]></script>
             <property name="matplotlibrc" value=""/>
             <property name="include_fields" value="false"/>
         </chart>
-        <chart icon="icons/full/obj/linechart.png" id="395" name="Traffic shaping" template="linechart_separate_mpl" type="MATPLOTLIB">
+        <chart icon="icons/full/obj/linechart.png" id="855680511" name="Traffic shaping" template="linechart_separate_mpl" type="MATPLOTLIB">
             <script><![CDATA[import re
 import numpy
 import math
@@ -2652,6 +2650,7 @@ for a in plt.gcf().axes:
     x_in = (numpy.array(xs) > xmin) & (numpy.array(xs) < xmax)
     
     ys_in = ys[x_in]
+    print(ys_in)
     y_min, y_max = ys_in.min(), ys_in.max()
     y_range = y_max - y_min
     y_min -= y_range * 0.1
@@ -3237,7 +3236,7 @@ utils.export_data_if_needed(df, props)]]></script>
             <property name="grid_density" value="Major"/>
             <property name="yaxis_min" value=""/>
             <property name="image_export_filename" value="TrafficShaping"/>
-            <property name="xaxis_min" value="58"/>
+            <property name="xaxis_min" value=""/>
             <property name="matplotlibrc.axes.facecolor" value=""/>
             <property name="linewidth" value="1.5"/>
             <property name="legend_format" value=""/>
@@ -3252,12 +3251,12 @@ utils.export_data_if_needed(df, props)]]></script>
             <property name="matplotlibrc.legend.shadow" value="false"/>
             <property name="simplify" value="false"/>
             <property name="yaxis_max" value=""/>
-            <property name="xaxis_max" value="64"/>
+            <property name="xaxis_max" value=""/>
             <property name="image_export_width" value="9"/>
             <property name="matplotlibrc" value=""/>
             <property name="include_fields" value="false"/>
         </chart>
-        <chart icon="icons/full/obj/linechart.png" id="178137062" name="Shaper Outgoing and Server Application Traffic" template="linechart_mpl" type="MATPLOTLIB">
+        <chart icon="icons/full/obj/linechart.png" id="561234370" name="Shaper Outgoing and Server Application Traffic" template="linechart_mpl" type="MATPLOTLIB">
             <script><![CDATA[import math
 from omnetpp.scave import results, chart, utils
 import os
@@ -3309,7 +3308,7 @@ legend_style = [('shaper outgoing', {'linestyle': 'solid', 'color': 'black'}),
                 ('server application', {'linestyle': 'dashed', 'color': 'black'}),
                 ('best effort', {'marker': 's', 'linestyle': '', 'color': default_colors[0]}),
                 ('video', {'marker': 's', 'linestyle': '', 'color': default_colors[1]}),
-                ('nominal data rate', {'linestyle': 'dotted', 'color': 'black'})]
+                ('nominal', {'linestyle': 'dotted', 'color': 'black'})]
 
 handles, labels = modifiedplot.multidimensional_legend(legend_style)
 
@@ -3884,11 +3883,11 @@ utils.export_data_if_needed(df, props)
             <property name="linecolor" value=""/>
             <property name="matplotlibrc.figure.facecolor" value=""/>
             <property name="legend_prefer_result_titles" value="true"/>
-            <property name="legend_manual" value="false"/>
+            <property name="legend_manual" value="true"/>
             <property name="yaxis_title" value="Data Rate [Mbps]"/>
             <property name="legend_replacements" value=""/>
             <property name="title" value="Client Application and Shaper Incoming Traffic"/>
-            <property name="legend_automatic" value="true"/>
+            <property name="legend_automatic" value="false"/>
             <property name="vector_operations" value="apply: divide_by(1000000)"/>
             <property name="cycle_seed" value="0"/>
             <property name="yaxis_log" value="false"/>
@@ -3903,7 +3902,7 @@ utils.export_data_if_needed(df, props)
             <property name="xaxis_min" value="0"/>
             <property name="matplotlibrc.axes.facecolor" value=""/>
             <property name="linewidth" value="1.5"/>
-            <property name="legend_format" value=""/>
+            <property name="legend_format" value="$source"/>
             <property name="filter" value="(module =~ &quot;*.switch.eth[1].macLayer.queue.queue[*]&quot; AND name =~ outgoingDataRate:vector) OR&#10;(module =~ &quot;*.server.app[*].sink&quot; AND name =~ dataRate:vector)"/>
             <property name="vector_start_time" value=""/>
             <property name="linestyle" value="solid"/>
@@ -3914,8 +3913,8 @@ utils.export_data_if_needed(df, props)
             <property name="legend_show" value="true"/>
             <property name="matplotlibrc.legend.shadow" value="false"/>
             <property name="simplify" value="false"/>
-            <property name="yaxis_max" value="60"/>
-            <property name="xaxis_max" value="1"/>
+            <property name="yaxis_max" value="70"/>
+            <property name="xaxis_max" value="10"/>
             <property name="image_export_width" value="9"/>
             <property name="matplotlibrc" value="savefig.transparent : True"/>
             <property name="include_fields" value="false"/>
