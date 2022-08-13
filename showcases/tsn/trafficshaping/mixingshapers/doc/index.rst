@@ -101,32 +101,85 @@ The two streams are terminated in two traffic sinks in the ``server``:
 Stream Identification and Encoding
 ++++++++++++++++++++++++++++++++++
 
-The two streams have two different traffic classes: best effort and video. The
-bridging layer identifies the outgoing packets by their UDP destination port.
-The client encodes and the switch decodes the streams using the IEEE 802.1Q PCP
-field.
+.. The two streams have two different traffic classes: best effort and video. The
+   bridging layer identifies the outgoing packets by their UDP destination port.
+   The client encodes and the switch decodes the streams using the IEEE 802.1Q PCP
+   field.
 
-.. literalinclude:: ../omnetpp.ini
+.. .. literalinclude:: ../omnetpp.ini
    :start-at: outgoing streams
    :end-before: ingress per-stream filtering
    :language: ini
 
+We classify packets into two traffic categories (best effort and video) in the same way as in the Credit-Based Shaping and Asynchronous Traffic shaping
+showcases. Here is a summary of the stream identification and encoding configuration:
+
+- We enable IEEE 802.1 stream identification and stream encoding in the client. 
+- We configure the stream identifier module in the bridging layer to assign outgoing packets to named streams by UDP destination port. 
+- The stream encoder sets the PCP number according to the assigned stream name.
+- After transmission, the switch decodes the streams by the PCP number.
+
+.. note::
+
+   .. raw:: html
+
+      <details>
+      <summary>The relevant configuration (click to open/close)</summary>
+
+   .. literalinclude:: ../omnetpp.ini
+      :start-at: outgoing streams
+      :end-before: ingress per-stream filtering
+      :language: ini
+
+   .. raw:: html
+
+      </details>
+
 Traffic Shaping
 +++++++++++++++
 
-The asynchronous traffic shaper requires the transmission eligibility time for
-each packet to be already calculated by the ingress per-stream filtering.
+.. The asynchronous traffic shaper requires the transmission eligibility time for
+   each packet to be already calculated by the ingress per-stream filtering.
+
+The asynchronous traffic shaper has components in the bridging layer. I.e., 
+The ATS requires the transmission eligibility time for
+each packet to be calculated by the ingress per-stream filtering.
+
+We enable ingress filtering in the switch, this adds a stream filtering layer
+to the bridging layer. By default, the ingress filter is a SimpleIeee8021qFilter.
+We add the EligibilityTimeMeter and EligibilityTimeFilter modules here.
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: ingress per-stream filtering
    :end-before: egress traffic shaping
    :language: ini
 
+We only use one traffic class here, because only the video stream is shaped by the ATS,
+and only the ATS has components in the ingess filter. The classifier will send the video stream
+through the meter and the filter module, while the best effort stream will just go through the SimpleIeee8021qFilter
+module via the non-filtered direct path:
+
+.. figure:: media/filter.png
+   :align: center
+
+Also, we need to configure the committed information rate and committed burst size parameters here,
+at the meter modules. These modules meter the data rate of the traffic passing through, calculate the eligibility
+time and put an eligibility time tag to all packets.
+
 The traffic shaping takes place in the outgoing network interface of the switch
-where both streams pass through. The traffic shaper limits the data rate of the
-best effort stream to 40 Mbps and the data rate of the video stream to 20 Mbps.
-The excess traffic is stored in the MAC layer subqueues of the corresponding
-traffic class.
+where both streams pass through. We configure the CBS to limit the data rate of the
+best effort stream to 40 Mbps and the ATS to limit the video stream to 20 Mbps, while allowing some bursts.
+Packets that are held up by the shapers are stored in the MAC layer subqueues of the corresponding
+traffic class:
+
+.. **TODO** the modules
+
+We enable egress traffic shaping in the switch. This setting adds a Ieee8021qTimeAwareShaper to all interfaces.
+We just use the time aware shaper in eth1, as that is in the direction of the traffic flow. Here, we need two traffic classes,
+so they can be shaped individually (obviously). For the best effort traffic class, we insert a CBS by overriding the transmissionSelectionAlgorithm module type
+of the first stream with Ieee8021qCreditBasedShaper. For the video class, we override the queue type and the transmissionSelectionAlgorithm type
+with EligibilityTimeQueue and Ieee8021qAsynchronousShaper. We configure the committed information rate of the CBS to 20Mbps.
+The ATS shapes traffic based on the eligibility time tag added to packets in the bridging layer.
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: egress traffic shaping
