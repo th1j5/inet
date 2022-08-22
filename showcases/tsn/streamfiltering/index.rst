@@ -45,7 +45,7 @@ The following showcases demonstrate per-stream filtering and policing:
 .. toctree::
    :maxdepth: 1
 
-   tokenbucket/doc/index
    statistical/doc/index
+   tokenbucket/doc/index
    underthehood/doc/index
 
