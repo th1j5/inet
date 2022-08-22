@@ -54,7 +54,7 @@ legend_style = [('Client Application', {'linestyle': '--', 'color': 'black'}),
                 ('Best Effort', {'color': default_colors[0], 'marker': 's', 'linestyle': ''}),
                 ('Video', {'color': default_colors[1], 'marker': 's', 'linestyle': ''})]
 
-handles, labels = modifiedplot.multidimensional_legend(legend_style)
+handles, labels = modifiedplot.create_multidimensional_legend(legend_style)
 
 # plot
 modifiedplot.plot_vectors(df, props)
@@ -3931,7 +3931,7 @@ legend_style = [('Shaper Outgoing', {'linestyle': '-', 'color': 'black'}),
                 ('Best Effort', {'color': default_colors[0], 'marker': 's', 'linestyle': ''}),
                 ('Video', {'color': default_colors[1], 'marker': 's', 'linestyle': ''})]
 
-handles, labels = modifiedplot.multidimensional_legend(legend_style)
+handles, labels = modifiedplot.create_multidimensional_legend(legend_style)
 
 # plot
 modifiedplot.plot_vectors(df, props)
@@ -4595,7 +4595,7 @@ legend_style = [('Shaper Incoming', {'linestyle': 'dotted', 'color': 'black'}),
                 ('Video', {'color': default_colors[1], 'marker': 's', 'linestyle': ''}),
                 ('Nominal data rate', {'linestyle': 'dashdot', 'color': 'grey'})]
 
-handles, labels = modifiedplot.multidimensional_legend(legend_style)
+handles, labels = modifiedplot.create_multidimensional_legend(legend_style)
 
 # plot
 modifiedplot.plot_vectors(df, props)
@@ -5277,7 +5277,7 @@ plt.axhline(y=20.84, color='grey', linestyle='dashdot', linewidth=1)
 plt.axhline(y=41.68, color='grey', linestyle='dashdot', linewidth=1)
 
 #handles, labels = ax2.get_legend_handles_labels()
-handles, labels = modifiedplot.multidimensional_legend([('best effort', {'color': default_colors[0], 'linestyle': 'solid'}),
+handles, labels = modifiedplot.create_multidimensional_legend([('best effort', {'color': default_colors[0], 'linestyle': 'solid'}),
                                       ('video', {'color': default_colors[1], 'linestyle': 'solid'}),
                                       ('nominal data rate', {'color': 'grey', 'linestyle': 'dashdot'})])
 
@@ -5966,7 +5966,7 @@ ax2.axhline(y=20.84, color='grey', linestyle='dashdot', linewidth=1)
 ax2.axhline(y=41.68, color='grey', linestyle='dashdot', linewidth=1)
 
 #handles, labels = ax2.get_legend_handles_labels()
-handles, labels = modifiedplot.multidimensional_legend([('best effort', {'color': default_colors[0], 'linestyle': 'solid'}),
+handles, labels = modifiedplot.create_multidimensional_legend([('best effort', {'color': default_colors[0], 'linestyle': 'solid'}),
                                       ('video', {'color': default_colors[1], 'linestyle': 'solid'}),
                                       ('nominal data rate', {'color': 'grey', 'linestyle': 'dashdot'})])
 
@@ -6643,7 +6643,7 @@ plt.axhline(y=20.84, color='grey', linestyle='dashdot', linewidth=1)
 plt.axhline(y=41.68, color='grey', linestyle='dashdot', linewidth=1)
 
 #handles, labels = ax2.get_legend_handles_labels()
-handles, labels = modifiedplot.multidimensional_legend([('best effort', {'color': default_colors[0], 'linestyle': 'solid'}),
+handles, labels = modifiedplot.create_multidimensional_legend([('best effort', {'color': default_colors[0], 'linestyle': 'solid'}),
                                       ('video', {'color': default_colors[1], 'linestyle': 'solid'}),
                                       ('nominal data rate', {'color': 'grey', 'linestyle': 'dashdot'})])
 

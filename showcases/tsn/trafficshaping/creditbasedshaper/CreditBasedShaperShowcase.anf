@@ -57,7 +57,7 @@ legend_style = [('client application', {'linestyle': 'dashed', 'color': 'black'}
                 ('best effort', {'color': default_colors[0], 'marker': 's', 'markersize': 4, 'linestyle': ''}),
                 ('video', {'color': default_colors[1], 'marker': 's', 'markersize': 4, 'linestyle': ''})]
 
-handles, labels = modifiedplot.multidimensional_legend(legend_style)
+handles, labels = modifiedplot.create_multidimensional_legend(legend_style)
 
 plt.legend(handles, labels, ncol=2)
 
@@ -3297,7 +3297,7 @@ plt.axhline(y=41.84, color='grey', linestyle='dashdot', linewidth=1)
 
 utils.postconfigure_plot(props)
 
-handles, labels = modifiedplot.multidimensional_legend(legend_style_tuple_list)
+handles, labels = modifiedplot.create_multidimensional_legend(legend_style_tuple_list)
 plt.legend(handles, labels, ncol=2)
 
 utils.export_image_if_needed(props)
@@ -3950,7 +3950,7 @@ legend_style = [('shaper outgoing', {'linestyle': '-', 'color': 'black'}),
                 ('best effort', {'color': default_colors[0], 'marker': 's', 'markersize': 4, 'linestyle': ''}),
                 ('video', {'color': default_colors[1], 'marker': 's', 'markersize': 4, 'linestyle': ''})]
 
-handles, labels = modifiedplot.multidimensional_legend(legend_style)
+handles, labels = modifiedplot.create_multidimensional_legend(legend_style)
 plt.legend(handles, labels, ncol=2)
 
 plt.tight_layout()
