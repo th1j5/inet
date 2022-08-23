@@ -6,11 +6,12 @@ Goals
 
 The asynchronous traffic shaper can smooth traffic while allowing some burstiness.
 This reduces delay and increases link utilization compared to the credit-based shaper.
-Also, it doesn't require synchronized time in network nodes.
+
+**TODO** somewhere else Also, it doesn't require synchronized time in network nodes.
 
 In this example we demonstrate how to use the asynchronous traffic shaper.
 
-**TODO** according to the docs, the CBS requires coordinated time; why?
+.. **TODO** according to the docs, the CBS requires coordinated time; why?
 
 | INET version: ``4.4``
 | Source files location: `inet/showcases/tsn/trafficshaping/asynchronousshaper <https://github.com/inet-framework/tree/master/showcases/tsn/trafficshaping/asynchronousshaper>`__
@@ -22,7 +23,7 @@ Overview
 ~~~~~~~~
 
 Conceptually, the asynchronous traffic shaper meters the data rate of incoming traffic, and calculates an eligibility time for all packets,
-i.e. when the packet should be sent. Sending packets at their respective eligibility time results in the shaped output traffic.
+i.e. after which the packet could be sent. Sending packets after their respective eligibility time results in the shaped output traffic.
 As traffic streams are reshaped per-hop, no synchornized time is necessary among network nodes, and channel utilization can be optimized
 at each link.
 
@@ -32,14 +33,16 @@ The eligibility time is calculated by the asyncronous shaper algorithm.
 The shaper has two parameters that can be specified (as opposed to the one parameter of the credit-based shaper), 
 the `committed information rate`, and the `committed burst rate`.
 The committed information rate is similar to the idle slope parameter of the credit-based shaper in that it specifies and average outgoing
-data rate that the traffic is limited to. The committed burst rate specifies that allowed burst size.
+data rate that the traffic is limited to. The committed burst rate allows to temporary increase the data rate above the limit.
+
+.. allows to temporary increase the data rate above the limit.
 
 **TODO** It uses a token bucket to do that.
 
 In INET, the asynchronous shaper mechanism is implemented by four modules:
 
-- :ned:`EligibilityTimeMeter`: calculates eligibility time (in bridging layer)
-- :ned:`EligibilityTimeFilter`: filters expired packets (?)(in bridging layer)
+- :ned:`EligibilityTimeMeter`: calculates eligibility time (in ingress filter of the bridging layer)
+- :ned:`EligibilityTimeFilter`: filters out packets that are too old (in ingress filter of the bridging layer)
 - :ned:`EligibilityTimeQueue`: stores packets ordered by eligibility time (in interface)
 - :ned:`EligibilityTimeGate`: pushes packets at the eligibility time for transmission (in interface)
 
@@ -65,11 +68,13 @@ To enable asynchronous traffic shaping in a TSN switch, for example, we need to 
      *.switch.bridging.streamFilter.ingress.meter[*].typename = "EligibilityTimeMeter"
      *.switch.bridging.streamFilter.ingress.filter[*].typename = "EligibilityTimeFilter"
 
+   **TODO** simplify
+
 - The :ned:`EligibilityTimeQueue` and :ned:`EligibilityTimeGate` is in the MAC layer of network interfaces. We enable egress traffic shaping in the switch:
 
   .. code-block:: ini
 
-     ``*.switch.hasEgressTrafficShaping = true``
+     *.switch.hasEgressTrafficShaping = true
 
   This adds a :ned:`Ieee8021qTimeAwareShaper` to the MAC layer of all interfaces. Similarly to the credit-based shaper, it is convenient to insert the
   asynchronous shaper modules into the time-aware shaper module, as it has all the necessary submodules (e.g. queues) and a configurable number of traffic classes.
