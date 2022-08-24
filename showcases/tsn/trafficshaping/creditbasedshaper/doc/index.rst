@@ -49,7 +49,7 @@ Frame transmission is only allowed when the credit count is non-negative. When f
 until the  transmission is complete. When there is no transmission, credit increases with a rate called `idle slope`. 
 The next frame is transmitted when the credit is zero or positive. The idle slope controls the average outgoing data rate.
 
-   , and can be specified with the :par:`idleSlope` parameter (in bps) of the shaper.
+..   , and can be specified with the :par:`idleSlope` parameter (in bps) of the shaper.
 
 .. The idle and send slopes can be specified with parameters.
 
@@ -77,15 +77,22 @@ This is a :ned:`PriorityScheduler` configured to work in reverse order, i.e., pr
 
 .. **TODO** max interference size?
 
-**TODO** other parameters, check the NED doc
+.. **TODO** other parameters, check the NED doc
 
 .. initial, min and max credit count. The threshold where transmission is possible can also be specified (:par:`transmitCreditLimit`).
 
-**TODO** the number of traffic classes can be specified with the parameter of the time aware shaper -> check out the showcase -> actually earlier
+.. **TODO** the number of traffic classes can be specified with the parameter of the time aware shaper -> check out the showcase -> actually earlier
 
-**TODO** CBS details
+.. **TODO** CBS details
 
-**TODO** channel data rate is the parameter in idleslope; not the same as the shaper data rate
+The :ned:`Ieee8021qCreditBasedShaper` module's :par:`idleSlope` parameter specifies the nominal outgoing data rate of the shaper in `bps`. By default,
+the gate is open when the number of credits is zero or more. When the number of credits is positive, the shaper builds a burst reserve. However, by default,
+if there are no packets in the queue, the credits are set to zero.
+
+.. note:: The :par:`idleSlope` parameter specifies the `channel data rate`. However, this is not the same as the data rate in the shaper due to protocol overhead.
+          This is relevant when observing traffic in the shaper, as it isn't limited to the value of :par:`idleSlope`, but slightly less.
+
+..   **TODO** channel data rate is the parameter in idleslope; not the same as the shaper data rate
 
 .. **TODO** is it possible to have just one cbs and not per-traffic-class? -> numTrafficClasses=1?
 
@@ -244,7 +251,7 @@ The traffic only changes significantly in the shaper, other parts of the network
 The following sequence chart displays frame transmissions in the network. The best effort traffic category is colored blue, the
 video red:
 
-.. figure:: media/seqchart.png
+.. .. figure:: media/seqchart.png
    :align: center
 
 .. figure:: media/seqchart2.png
@@ -253,7 +260,7 @@ video red:
 The traffic is more bursty when it arrives in the switch. The traffic shaper in the switch distributes packets evenly,
 and interleaves video packets with the best effort ones.
 
-**TODO** reducing burst per-traffic-class
+.. **TODO** reducing burst per-traffic-class
 
 .. The first diagram shows the data rate of the application level outgoing traffic
    in the client. The data rate varies randomly over time for both traffic classes
@@ -282,12 +289,12 @@ and interleaves video packets with the best effort ones.
 
 The next diagram shows the queue lengths of the traffic classes in the outgoing
 network interface of the switch. The queue lengths don't increase over time because
-the data rate of the shaper incoming traffic is, on average, higher than
-the data rate of the outgoing traffic. This is because the incoming data rate fluctuates
-around the nominal value, i.e., sometimes it is higher. However, the shaper limits the data rate
-to the nominal value, so excess packets are stored in the queues, and not dropped.
+the data rate of the shaper incoming traffic is, on average, is the same as
+the data rate of the outgoing traffic. The incoming data rate fluctuates
+around the nominal value, and the shaper limits the data rate
+to the same value. Excess packets are stored in the queues, and not dropped.
 
-**TODO** on average dont increase over time cos on average they are the same
+.. **TODO** on average dont increase over time cos on average they are the same
 
 .. figure:: media/TrafficShaperQueueLengths.png
    :align: center
@@ -295,7 +302,7 @@ to the nominal value, so excess packets are stored in the queues, and not droppe
 The next chart shows the number of credits as it fluctuates rapidly.
 It can grow above zero if the corresponding queue is not empty.
 
-**TODO** nem gyujt burst tartalekot ha nincs csomag -> is this needed?
+.. **TODO** nem gyujt burst tartalekot ha nincs csomag -> is this needed?
 
 .. figure:: media/TrafficShaperNumberOfCredits.png
    :align: center
