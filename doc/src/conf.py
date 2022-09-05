@@ -48,6 +48,7 @@ extensions = [
     'sphinx.ext.graphviz',
     #'sphinxcontrib.images',
     'tools.doxylink',
+    'rinoh.frontend.sphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -197,7 +198,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     #('users-guide/index', 'users-guide.tex', "INET Framework User's Guide", '', 'manual', False),
-    ('showcases/tsn/combiningfeatures/gptpandtas/doc/index', 'gptpandtas.tex', "gptpandtas showcase", '', 'article', False),
+    ('showcases/tsn/trafficshaping/creditbasedshaper/doc/index', 'cbs.tex', "Credit-Based Shaping", '', 'article', False),
     #('developers-guide/index', 'developers-guide.tex', "INET Framework Developer's Guide", '', 'manual', False),
 ]
 
