@@ -188,9 +188,9 @@ The ATS shapes traffic based on the eligibility time tag added to packets in the
 Results
 -------
 
-The first diagram shows the data rate of the application level outgoing traffic
-in the client. The data rate varies randomly over time but the averages are the
-same.
+.. The first diagram shows the data rate of the application level outgoing traffic
+   in the client. The data rate varies randomly over time but the averages are the
+   same.
 
 The following chart shows the client application and traffic shaper incoming data rate:
 
@@ -201,10 +201,10 @@ As per our goal, the traffic doesn't change significantly before getting to the 
 The data rate in the shaper is a bit higher due to protocol overhead, but the traffic
 measured in the two locations follow the same shape.
 
-The next diagram shows the data rate of the incoming traffic of the traffic
-shapers of the outgoing network interface in the switch. This is different
-from the previous because the traffic is already in the switch and it is also
-measured at different protocol level.
+.. The next diagram shows the data rate of the incoming traffic of the traffic
+   shapers of the outgoing network interface in the switch. This is different
+   from the previous because the traffic is already in the switch and it is also
+   measured at different protocol level.
 
 The next chart shows the incoming and outgoing traffic in the shaper, so we can observe
 the shaper's effect on the traffic:
