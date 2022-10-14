@@ -134,8 +134,9 @@ for the traffic to only get altered in the traffic shaper, and minimize unintend
    - we configure the traffic shaper to limit the data rate to the nominal/mean values of 42 and 21 Mbps for the data streams
 
 We configure two traffic source applications in the client, creating two independent data streams
-between the client and the server. The data rate of the streams fluctuates randomly around ~42 and ~21 Mbps mean values, respectively, 
-but the links in the network on average are not saturated. Later on, we configure the traffic shaper to limit the data rate to the nominal values of ~42 and ~21 Mbps for the data streams.
+between the client and the server. The data rates of the streams change sinusoidally, with ~42 and ~21 Mbps mean values **TODO**, respectively, 
+but the links in the network on average are not saturated. Later on, we configure the traffic shaper to limit the data rate to ~42 and ~21 Mbps for the data streams,
+thus the incoming traffic is on average less than the outgoing limit.
 Here is the traffic configuration:
 
 .. the application level in the client. **TODO** 42/21
@@ -235,7 +236,13 @@ Now let's examine how the traffic changes in the shaper. We compare the data rat
 .. figure:: media/shaper_both.png
    :align: center
 
-The incoming traffic fluctuates around the specified nominal data rate. The outgoing traffic is limited to the nominal data rate.
+   The incoming traffic fluctuates around the specified nominal data rate. The outgoing traffic is limited to the nominal data rate.
+
+.. The incoming traffic is sometimes greater than the nominal data rate of the shaper/the limit, and the shaper limits the data rate to the limit (????)
+
+The data rate of the incoming traffic is on average less than the shaper's limit, but it periodically goes over the limit. In this case, the shaper
+limits the data rate to the nominal value. The shaper stores packets, and eventually sends them, so the outgoing traffic is smoothed.
+When the incoming traffic is below the nominal value, there is no need for traffic shaping, and the outgoing traffic is the same as the incoming.
 
 .. note:: The data rate specified in the ini file as the idle slope parameter is the channel data rate, but this is somewhat different from the outgoing data rate in the shaper due to protocol overhead (PHY + IFG). In this chart, we measure data rate in the shaper, thus we displayed the nominal data rate lines as calculated for the shaper. 
 
@@ -290,10 +297,10 @@ and interleaves video packets with best effort ones.
 
 The next diagram shows the queue lengths of the traffic classes in the outgoing
 network interface of the switch. The queue lengths don't increase over time because
-the data rate of the shaper incoming traffic is, on average, is the same as
-the data rate of the outgoing traffic. The incoming data rate fluctuates
-around the nominal value, and the shaper limits the data rate
-to the nominal value. Excess packets are stored in the queues, and not dropped.
+the data rate of the shaper incoming traffic is, on average, less than
+the data rate of the allowed outgoing traffic. The incoming data rate fluctuates
+around ~37.7 and 16.7 Mbps, and the shaper limits the data rate
+to ~42 and ~21 Mbps, respectively. Excess packets are stored in the queues, and not dropped.
 
 .. **TODO** on average dont increase over time cos on average they are the same
 
@@ -336,6 +343,9 @@ shows only the first 2ms of the simulation to make the details visible:
 .. figure:: media/TrafficShaping.png
    :align: center
 
+.. figure:: media/TrafficShaping_new.png
+   :align: center
+
 Note that the queue length is zero most of the time because the queue length doesn't increase to one if an incoming packet can be transmitted
 immediately. Also, in the transmitter, sometimes two packets (each from a different category) are being trasmitted back-to-back,
 with just an Interframe Gap period in between them - e.g. the first two transmissions. This doesn't cause per-traffic-class bursting because
@@ -343,9 +353,11 @@ the two packets are of different traffic classes.
 
 We can observe the operation of the credit-based shaper in this diagram. Take, for example, the number of credits for the video traffic category.
 First the number of credits is 0. Then, a packet arrives at the queue and starts trasmitting, and the number of credits
-decreases. When the transmission is finished, the number of credits begins to increase. Before it reaches 0, another packet arrives in the queue.
-It cannot be transmitted immediately as the number of credits is still negative, so the queue length becomes 1.
-When the number of credits reaches 0, transmission starts, and the number of credits starts decreasing again.
+decreases. When the transmission is finished, the number of credits begins to increase. 
+When the number of credits reaches 0, another transmission starts, and the number of credits starts decreasing again.
+
+.. Before it reaches 0, another packet arrives in the queue.
+   It cannot be transmitted immediately as the number of credits is still negative, so the queue length becomes 1.
 
 .. The last diagram shows the data rate of the application level incoming traffic
    in the server. The data rate is somewhat lower than the data rate of the
