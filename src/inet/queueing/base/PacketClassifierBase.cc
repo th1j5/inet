@@ -74,6 +74,9 @@ void PacketClassifierBase::startPacketStreaming(Packet *packet)
     EV_INFO << "Classifying packet" << EV_FIELD(packet) << EV_ENDL;
     inProgressStreamId = packet->getTreeId();
     inProgressGateIndex = callClassifyPacket(packet);
+    auto consumer = consumers[inProgressGateIndex];
+    if (consumer!= nullptr && !consumer->canPushPacket(packet, outputGates[inProgressGateIndex]->getPathEndGate()))
+        throw cRuntimeError("Packet is classified to output gate %d but it cannot be pushed to due to backpressure", inProgressGateIndex);
 }
 
 void PacketClassifierBase::endPacketStreaming(Packet *packet)
@@ -105,6 +108,9 @@ void PacketClassifierBase::pushPacket(Packet *packet, cGate *gate)
     checkPacketStreaming(nullptr);
     EV_INFO << "Classifying packet" << EV_FIELD(packet) << EV_ENDL;
     int index = callClassifyPacket(packet);
+    auto consumer = consumers[index];
+    if (consumer != nullptr && !consumer->canPushPacket(packet, outputGates[index]->getPathEndGate()))
+        throw cRuntimeError("Packet is classified to output gate %d but it cannot be pushed to due to backpressure", index);
     handlePacketProcessed(packet);
     emit(packetPushedSignal, packet);
     pushOrSendPacket(packet, outputGates[index], consumers[index]);
