@@ -5,7 +5,7 @@
 //
 
 
-package inet.networklayer.icmpv6;
+package inet.networklayer.ipv6layer.neighbourdiscovery;
 
 //
 // Implements IPv6 Neighbour Discovery.
@@ -19,7 +19,7 @@ simple Ipv6NeighbourDiscovery
 {
     parameters:
         string interfaceTableModule;   // The path to the InterfaceTable module
-        string crcMode @enum("declared", "computed") = default("declared");
+        string crcMode @enum("declared","computed") = default("declared");
         string icmpv6Module;
         string xmipv6Module;
         string routingTableModule;
@@ -27,7 +27,8 @@ simple Ipv6NeighbourDiscovery
         double maxIntervalBetweenRAs @unit(s) = default(70ms);  //MaxrtrAdvInterval: 0.07 sec for MIPv6, declared as parameter to facilitate testing without recompiling (Zarrar 15.07.07)
         @display("i=block/network");
         @signal[startDad](type=long); // emits value=1
-        @statistic[startDad](title="DAD started";record=count,vector);
+        @statistic[startDad](title="DAD started"; record=count,vector);
+        @formerly(inet.networklayer.icmpv6.Ipv6NeighbourDiscovery);
     gates:
         input ipv6In;
         output ipv6Out;
