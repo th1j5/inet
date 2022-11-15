@@ -1,0 +1,90 @@
+%description:
+
+In this test, packets are produced periodically by an active packet source
+(ActivePacketSource). The packets are consumed by a passive packet sink (PassivePacketSink).
+Packets are passed through from the source to the sink by a filter (PacketFilter).
+The filter pass through the first 5 packets, other packets are back pressured.
+
+Problems:
+ - The filter in backpressure mode, filtered out the arrived packet instead of throw an error.
+ - The producer is pushing a not acceptable packet to the filter.
+
+%file: test.ned
+
+import inet.queueing.sink.PassivePacketSink;
+import inet.queueing.filter.PacketFilter;
+import inet.queueing.source.ActivePacketSource;
+
+network TestFilter
+{
+    submodules:
+        producer: ActivePacketSource {
+            @display("p=100,100");
+        }
+        filter: PacketFilter {
+            @display("p=200,100");
+        }
+        consumer: PassivePacketSink {
+            @display("p=300,100");
+        }
+    connections allowunconnected:
+        producer.out --> filter.in;
+        filter.out --> consumer.in;
+}
+
+%file: Test.cc
+#include <string.h>
+#include "inet/queueing/function/PacketFilterFunction.h"
+#include "inet/common/packet/Packet.h"
+
+using namespace inet;
+
+static bool testFilter(const Packet *packet)
+{
+    const char *name = packet->getName();
+    return strncmp(name, "producer-", 9)==0 && name[9] < '5' && name[10] == '\0';
+}
+
+Register_Packet_Filter_Function(TestFilter, testFilter);
+
+%inifile: omnetpp.ini
+
+[General]
+network = TestFilter
+sim-time-limit = 10s
+cmdenv-event-banners = false
+*.producer.packetLength = 1B
+*.producer.productionInterval = 1s
+*.filter.filterClass = "TestFilter"
+*.filter.backpressure = true
+
+%# remove formatting
+%subst: /\x1B\[[0-9;]*m//
+
+%subst: /\nRunning simulation\.\.\.\n//
+
+%not-contains: stdout
+Filtering out packet,
+
+%not-contains-regex: stdout
+Producing packet, .*?producer-5.*?
+
+%not-contains-regex: stdout
+Consuming packet, .*?producer-5.*?
+
+%contains-regex: stdout
+Producing packet, .*?producer-0.*?
+Passing through packet, .*?producer-0.*?
+Consuming packet, .*?producer-0.*?
+Producing packet, .*?producer-1.*?
+Passing through packet, .*?producer-1.*?
+Consuming packet, .*?producer-1.*?
+Producing packet, .*?producer-2.*?
+Passing through packet, .*?producer-2.*?
+Consuming packet, .*?producer-2.*?
+Producing packet, .*?producer-3.*?
+Passing through packet, .*?producer-3.*?
+Consuming packet, .*?producer-3.*?
+Producing packet, .*?producer-4.*?
+Passing through packet, .*?producer-4.*?
+Consuming packet, .*?producer-4.*?
