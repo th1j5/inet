@@ -86,7 +86,7 @@ This is a :ned:`PriorityScheduler` configured to work in reverse order, i.e., pr
 
 .. **TODO** CBS details
 
-The :ned:`Ieee8021qCreditBasedShaper` module's :par:`idleSlope` parameter specifies the nominal outgoing data rate of the shaper in `bps`. By default,
+The :ned:`Ieee8021qCreditBasedShaper` module's :par:`idleSlope` parameter specifies the outgoing data rate of the shaper in `bps`. By default,
 the gate is open when the number of credits is zero or more. When the number of credits is positive, the shaper builds a burst reserve. However, by default,
 if there are no packets in the queue, the credits are set to zero.
 
@@ -134,7 +134,7 @@ for the traffic to only get altered in the traffic shaper, and minimize unintend
    - we configure the traffic shaper to limit the data rate to the nominal/mean values of 42 and 21 Mbps for the data streams
 
 We configure two traffic source applications in the client, creating two independent data streams
-between the client and the server. The data rates of the streams change sinusoidally, with ~42 and ~21 Mbps mean values **TODO**, respectively, 
+between the client and the server. The data rates of the streams change sinusoidally, with ~37.7 and ~16.7 Mbps mean values, respectively, 
 but the links in the network on average are not saturated. Later on, we configure the traffic shaper to limit the data rate to ~42 and ~21 Mbps for the data streams,
 thus the incoming traffic is on average less than the outgoing limit.
 Here is the traffic configuration:
@@ -189,7 +189,7 @@ field):
 
 Traffic shaping takes place in the outgoing network interface of the switch (``eth1``).
 The traffic shaper in the switch classifies packets by their PCP number, and
-limits the data rate of the best effort stream to ~41 Mbps and the data rate of the video stream to ~21 Mbps.
+limits the data rate of the best effort stream to ~42 Mbps and the data rate of the video stream to ~21 Mbps.
 The excess traffic is stored in the MAC layer subqueues of the corresponding
 traffic class.
 
@@ -236,15 +236,15 @@ Now let's examine how the traffic changes in the shaper. We compare the data rat
 .. figure:: media/shaper_both.png
    :align: center
 
-   The incoming traffic fluctuates around the specified nominal data rate. The outgoing traffic is limited to the nominal data rate.
+.. The incoming traffic fluctuates around the specified nominal data rate. The outgoing traffic is limited to the nominal data rate.
 
 .. The incoming traffic is sometimes greater than the nominal data rate of the shaper/the limit, and the shaper limits the data rate to the limit (????)
 
 The data rate of the incoming traffic is on average less than the shaper's limit, but it periodically goes over the limit. In this case, the shaper
-limits the data rate to the nominal value. The shaper stores packets, and eventually sends them, so the outgoing traffic is smoothed.
-When the incoming traffic is below the nominal value, there is no need for traffic shaping, and the outgoing traffic is the same as the incoming.
+limits the data rate to the configured limit. The shaper stores packets, and eventually sends them, so the outgoing traffic is smoothed.
+When the incoming traffic is below the shaper limit, there is no need for traffic shaping, and the outgoing traffic is the same as the incoming.
 
-.. note:: The data rate specified in the ini file as the idle slope parameter is the channel data rate, but this is somewhat different from the outgoing data rate in the shaper due to protocol overhead (PHY + IFG). In this chart, we measure data rate in the shaper, thus we displayed the nominal data rate lines as calculated for the shaper. 
+.. note:: The data rate specified in the ini file as the idle slope parameter is the channel data rate, but this is somewhat different from the outgoing data rate in the shaper due to protocol overhead (PHY + IFG). In this chart, we measure data rate in the shaper, thus we displayed the data rate limits as calculated for the shaper. 
 
 The next chart compares the shaper outgoing and server application traffic:
 
@@ -298,9 +298,9 @@ and interleaves video packets with best effort ones.
 The next diagram shows the queue lengths of the traffic classes in the outgoing
 network interface of the switch. The queue lengths don't increase over time because
 the data rate of the shaper incoming traffic is, on average, less than
-the data rate of the allowed outgoing traffic. The incoming data rate fluctuates
+the data rate of the allowed outgoing traffic. (The incoming data rate fluctuates
 around ~37.7 and 16.7 Mbps, and the shaper limits the data rate
-to ~42 and ~21 Mbps, respectively. Excess packets are stored in the queues, and not dropped.
+to ~42 and ~21 Mbps, respectively.) Excess packets are stored in the queues, and not dropped.
 
 .. **TODO** on average dont increase over time cos on average they are the same
 
@@ -320,7 +320,7 @@ state of the outgoing interface in the switch. Note that the gates can be open f
 periods longer than the duration of one packet transmission if the number of credits
 is zero or more.
 The transmitter is not transmitting
-all the time, as the outgoing data rate of the switch (~63Mbps) is less than the channel capacity (100Mbps).
+all the time, as the maximum outgoing data rate of the switch (~63Mbps) is less than the channel capacity (100Mbps).
 
 .. figure:: media/TransmittingStateAndGateStates.png
    :align: center
@@ -343,10 +343,7 @@ shows only the first 2ms of the simulation to make the details visible:
 .. figure:: media/TrafficShaping.png
    :align: center
 
-.. figure:: media/TrafficShaping_new.png
-   :align: center
-
-Note that the queue length is zero most of the time because the queue length doesn't increase to one if an incoming packet can be transmitted
+Note that the queue length is zero most of the time because the queue length doesn't increase to 1 if an incoming packet can be transmitted
 immediately. Also, in the transmitter, sometimes two packets (each from a different category) are being trasmitted back-to-back,
 with just an Interframe Gap period in between them - e.g. the first two transmissions. This doesn't cause per-traffic-class bursting because
 the two packets are of different traffic classes.
