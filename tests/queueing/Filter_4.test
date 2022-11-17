@@ -41,7 +41,7 @@ static bool testFilter(const Packet *packet)
     return strncmp(name, "producer-", 9)==0 && name[9] < '5' && name[10] == '\0';
 }
 
-Register_Packet_Filter_Function(TestFilter, testFilter);
+Register_Packet_Filter_Function(@TESTNAME@TestFilter, testFilter);
 
 %inifile: omnetpp.ini
 
@@ -51,7 +51,7 @@ sim-time-limit = 10s
 cmdenv-event-banners = false
 *.producer.packetLength = 1B
 *.producer.productionInterval = 1s
-*.filter.filterClass = "TestFilter"
+*.filter.filterClass = "@TESTNAME@TestFilter"
 
 %# remove formatting
 %subst: /\x1B\[[0-9;]*m//
