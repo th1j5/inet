@@ -41,7 +41,7 @@ void EthernetCutthroughSource::handleMessage(cMessage *message)
         int interfaceId = destinationAddress.isMulticast() ? -1 : macForwardingTable->getUnicastAddressForwardingInterface(destinationAddress);
         streamedPacket->addTag<InterfaceReq>()->setInterfaceId(interfaceId);
         const auto& dispatchProtocolReq = streamedPacket->removeTagIfPresent<DispatchProtocolReq>();
-        if (interfaceId != -1 && cutthroughConsumer->canPushPacket(streamedPacket, cutthroughOutputGate)) {
+        if (interfaceId != -1 && cutthroughConsumer->canPushPacket(streamedPacket, findConnectedGate<IPassivePacketSink>(cutthroughOutputGate, 1))) {
             streamedPacket->trim();
             streamedPacket->addTagIfAbsent<DirectionTag>()->setDirection(DIRECTION_OUTBOUND);
             EV_INFO << "Starting streaming packet " << streamedPacket->getName() << "." << std::endl;

@@ -9,6 +9,7 @@
 #define __INET_PACKETMULTIPLEXER_H
 
 #include "inet/common/IProtocolRegistrationListener.h"
+#include "inet/common/ModuleAccess.h"
 #include "inet/queueing/base/PacketProcessorBase.h"
 #include "inet/queueing/contract/IActivePacketSource.h"
 #include "inet/queueing/contract/IPassivePacketSink.h"
@@ -48,8 +49,8 @@ class INET_API PacketMultiplexer : public PacketProcessorBase, public virtual IP
     virtual bool supportsPacketPushing(cGate *gate) const override { return true; }
     virtual bool supportsPacketStreaming(cGate *gate) const override { return true; }
 
-    virtual bool canPushSomePacket(cGate *gate) const override { return consumer->canPushSomePacket(outputGate); }
-    virtual bool canPushPacket(Packet *packet, cGate *gate) const override { return consumer->canPushPacket(packet, gate); }
+    virtual bool canPushSomePacket(cGate *gate) const override { return consumer->canPushSomePacket(findConnectedGate<IPassivePacketSink>(outputGate, 1)); }
+    virtual bool canPushPacket(Packet *packet, cGate *gate) const override { return consumer->canPushPacket(packet, findConnectedGate<IPassivePacketSink>(outputGate, 1)); }
 
     virtual void pushPacket(Packet *packet, cGate *gate) override;
 

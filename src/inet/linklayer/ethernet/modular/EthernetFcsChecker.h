@@ -22,6 +22,7 @@ class INET_API EthernetFcsChecker : public FcsCheckerBase, public TransparentPro
 
   protected:
     virtual void initialize(int stage) override;
+
     virtual bool checkFcs(const Packet *packet, FcsMode fcsMode, uint32_t fcs) const override;
     virtual void processPacket(Packet *packet) override;
     virtual void dropPacket(Packet *packet) override;

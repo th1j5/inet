@@ -1,3 +1,6 @@
+scheduling priority and separate events from call tree, document somewhere
+supportsCanPushPacket?
+
  - add pop strategy queue parameter
 
  - implement missing models: CBQ, WFQ, RIO, Round Robin, Fair queueing Round Robin

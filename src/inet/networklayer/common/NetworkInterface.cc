@@ -188,20 +188,18 @@ void NetworkInterface::arrived(cMessage *message, cGate *gate, const SendOptions
 
 bool NetworkInterface::canPushSomePacket(cGate *gate) const
 {
-    auto pathEndGate = gate->getPathEndGate();
-    if (auto packetSink = dynamic_cast<IPassivePacketSink *>(pathEndGate->getOwnerModule()))
-        return packetSink->canPushSomePacket(gate);
-    else
-        return true;
+    ASSERT(gate->getOwnerModule() == this);
+    auto connectedGate = findConnectedGate<IPassivePacketSink>(gate, 1);
+    auto connectedSink = dynamic_cast<IPassivePacketSink *>(connectedGate->getOwnerModule());
+    return connectedSink == nullptr || connectedSink->canPushSomePacket(connectedGate);
 }
 
 bool NetworkInterface::canPushPacket(Packet *packet, cGate *gate) const
 {
-    auto pathEndGate = gate->getPathEndGate();
-    if (auto packetSink = dynamic_cast<IPassivePacketSink *>(pathEndGate->getOwnerModule()))
-        return packetSink->canPushPacket(packet, pathEndGate);
-    else
-        return true;
+    ASSERT(gate->getOwnerModule() == this);
+    auto connectedGate = findConnectedGate<IPassivePacketSink>(gate, 1);
+    auto connectedSink = dynamic_cast<IPassivePacketSink *>(connectedGate->getOwnerModule());
+    return connectedSink == nullptr || connectedSink->canPushPacket(packet, connectedGate);
 }
 
 void NetworkInterface::pushPacket(Packet *packet, cGate *gate)

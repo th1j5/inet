@@ -70,7 +70,7 @@ bool MessageDispatcher::canPushPacket(Packet *packet, cGate *inGate) const
 {
     auto outGate = const_cast<MessageDispatcher *>(this)->handlePacket(packet, inGate);
     auto consumer = findConnectedModule<queueing::IPassivePacketSink>(outGate);
-    return consumer != nullptr && !dynamic_cast<MessageDispatcher *>(consumer) && consumer->canPushPacket(packet, outGate->getPathEndGate());
+    return consumer != nullptr && !dynamic_cast<MessageDispatcher *>(consumer) && consumer->canPushPacket(packet, findConnectedGate<IPassivePacketSink>(outGate, 1));
 }
 
 void MessageDispatcher::pushPacket(Packet *packet, cGate *inGate)

@@ -9,13 +9,11 @@
 #define __INET_FCSCHECKERBASE_H
 
 #include "inet/linklayer/common/FcsMode_m.h"
-#include "inet/queueing/base/PacketFilterBase.h"
+#include "inet/protocolelement/base/ProtocolHeaderCheckerBase.h"
 
 namespace inet {
 
-using namespace inet::queueing;
-
-class INET_API FcsCheckerBase : public PacketFilterBase
+class INET_API FcsCheckerBase : public ProtocolHeaderCheckerBase
 {
   protected:
     virtual bool checkDisabledFcs(const Packet *packet, uint32_t fcs) const;
