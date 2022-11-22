@@ -20,7 +20,6 @@ void PeriodicGate::initialize(int stage)
     if (stage == INITSTAGE_LOCAL) {
         isOpen_ = par("initiallyOpen");
         initialOffset = par("offset");
-        durations = check_and_cast<cValueArray *>(par("durations").objectValue());
         scheduleForAbsoluteTime = par("scheduleForAbsoluteTime");
         changeTimer = new ClockEvent("ChangeTimer");
         changeTimer->setSchedulingPriority(par("changeTimerSchedulingPriority"));
@@ -37,7 +36,6 @@ void PeriodicGate::handleParameterChange(const char *name)
         else if (!strcmp(name, "initiallyOpen"))
             isOpen_ = par("initiallyOpen");
         else if (!strcmp(name, "durations")) {
-            durations = check_and_cast<cValueArray *>(par("durations").objectValue());
             initializeGating();
         }
     }
@@ -55,38 +53,55 @@ void PeriodicGate::handleMessage(cMessage *message)
 
 void PeriodicGate::initializeGating()
 {
-    if (durations->size() % 2 != 0)
+    auto durationsArray = check_and_cast<cValueArray *>(par("durations").objectValue());
+    size_t size = durationsArray->size();
+    if (size % 2 != 0)
         throw cRuntimeError("The duration parameter must contain an even number of values");
+    durations.resize(size);
+    for (size_t i=0; i<size; i++)
+        durations[i] = durationsArray->get(i).doubleValueInUnit("s");
+
     index = 0;
-    offset = initialOffset;
-    while (offset > 0) {
-        clocktime_t duration = durations->get(index).doubleValueInUnit("s");
-        if (offset > duration) {
-            isOpen_ = !isOpen_;
-            offset -= duration;
-            index = (index + 1) % durations->size();
+    offset = initialOffset = par("offset");
+    if (size > 0) {
+        clocktime_t lastDuration = durations[size-1];
+        if (lastDuration == CLOCKTIME_ZERO) {
+            if (size > 2) {
+                clocktime_t d2 = durations[size - 2];
+                durations[0] += d2;
+                initialOffset += d2;
+                offset += d2;
+            }
+            size -= 2;
+            durations.resize(size);
+        }
+        if (size > 0) {
+            while (offset > 0) {
+                if (offset > durations[index]) {
+                    isOpen_ = !isOpen_;
+                    offset -= durations[index];
+                    index = (index + 1) % size;
+                }
+                else
+                    break;
+            }
         }
         else
-            break;
+            offset = CLOCKTIME_ZERO;
     }
-    if (index < (int)durations->size()) {
-        if (changeTimer->isScheduled())
-            cancelClockEvent(changeTimer);
+    if (changeTimer->isScheduled())
+        cancelClockEvent(changeTimer);
+    if (size > 0)
         scheduleChangeTimer();
-    }
 }
 
 void PeriodicGate::scheduleChangeTimer()
 {
-    ASSERT(0 <= index && index < (int)durations->size());
-    clocktime_t duration = durations->get(index).doubleValueInUnit("s");
-    index = (index + 1) % durations->size();
-    // skip trailing zero for wrap around, length is divisible by 2 so the expected state is the same
-    if (durations->get(index).doubleValueInUnit("s") == 0) {
-        index = (index + 1) % durations->size();
-        duration += durations->get(index).doubleValueInUnit("s");
-        index = (index + 1) % durations->size();
-    }
+    ASSERT(0 <= index && index < (int)durations.size());
+    clocktime_t duration = durations[index];
+    if (duration == CLOCKTIME_ZERO)
+        throw cRuntimeError("The duration parameter contains zero value at position %d", index);
+    index = (index + 1) % durations.size();
     //std::cout << getFullPath() << " " << duration << std::endl;
     if (scheduleForAbsoluteTime)
         scheduleClockEventAt(getClockTime() + duration - offset, changeTimer);
@@ -105,7 +120,9 @@ void PeriodicGate::processChangeTimer()
 
 bool PeriodicGate::canPacketFlowThrough(Packet *packet) const
 {
-    if (std::isnan(bitrate.get()))
+    if (!isOpen_)
+        return false;
+    else if (std::isnan(bitrate.get()))
         return PacketGateBase::canPacketFlowThrough(packet);
     else if (packet == nullptr)
         return false;
