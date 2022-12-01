@@ -34,10 +34,11 @@ network TestProviderCollector
 network = TestProviderCollector
 sim-time-limit = 10s
 cmdenv-event-banners = false
+cmdenv-log-prefix = "At %ts: "
 *.provider.packetLength = 1B
 *.collector.collectionInterval = 1s
 *.gate.durations = [1s, 2s]
-*.gate.bitrate = 1bps
+*.gate.bitrate = 7bps
 
 %# remove formatting
 %subst: /\x1B\[[0-9;]*m//
@@ -45,12 +46,15 @@ cmdenv-event-banners = false
 %subst: /\nRunning simulation\.\.\.\n//
 
 %contains-regex: stdout
-Closing gate.
-Opening gate.
-Closing gate.
-Opening gate.
-Closing gate.
-Opening gate.
-Closing gate.
+At 1s: Closing gate.
+At 3s: Opening gate.
+At 4s: Closing gate.
+At 6s: Opening gate.
+At 7s: Closing gate.
+At 9s: Opening gate.
+At 10s: Closing gate.
 
 <!> Simulation time limit reached -- at t=10s
+
+%not-contains: stdout
+Passing through packet
