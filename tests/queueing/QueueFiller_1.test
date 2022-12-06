@@ -31,6 +31,7 @@ network TestQueueFiller
 network = TestQueueFiller
 sim-time-limit = 10s
 cmdenv-event-banners = false
+cmdenv-log-prefix = "At %ts: "
 *.filler.provider.packetLength = 1B
 *.filler.tokenGenerator.queueModule = "queue"
 *.consumer.collectionInterval = 1s
@@ -38,64 +39,68 @@ cmdenv-event-banners = false
 %# remove formatting
 %subst: /\x1B\[[0-9;]*m//
 
-%subst: /\nRunning simulation\.\.\.\n//
-
 %contains-regex: stdout
-Providing packet, .*?provider-0.*?
-Processing packet, .*?provider-0.*?
-Pushing packet, .*?provider-0.*?
-Pulling packet, .*?provider-0.*?
-Collecting packet, .*?provider-0.*?
-Providing packet, .*?provider-1.*?
-Processing packet, .*?provider-1.*?
-Pushing packet, .*?provider-1.*?
-Pulling packet, .*?provider-1.*?
-Providing packet, .*?provider-2.*?
-Processing packet, .*?provider-2.*?
-Pushing packet, .*?provider-2.*?
-Collecting packet, .*?provider-1.*?
-Pulling packet, .*?provider-2.*?
-Providing packet, .*?provider-3.*?
-Processing packet, .*?provider-3.*?
-Pushing packet, .*?provider-3.*?
-Collecting packet, .*?provider-2.*?
-Pulling packet, .*?provider-3.*?
-Providing packet, .*?provider-4.*?
-Processing packet, .*?provider-4.*?
-Pushing packet, .*?provider-4.*?
-Collecting packet, .*?provider-3.*?
-Pulling packet, .*?provider-4.*?
-Providing packet, .*?provider-5.*?
-Processing packet, .*?provider-5.*?
-Pushing packet, .*?provider-5.*?
-Collecting packet, .*?provider-4.*?
-Pulling packet, .*?provider-5.*?
-Providing packet, .*?provider-6.*?
-Processing packet, .*?provider-6.*?
-Pushing packet, .*?provider-6.*?
-Collecting packet, .*?provider-5.*?
-Pulling packet, .*?provider-6.*?
-Providing packet, .*?provider-7.*?
-Processing packet, .*?provider-7.*?
-Pushing packet, .*?provider-7.*?
-Collecting packet, .*?provider-6.*?
-Pulling packet, .*?provider-7.*?
-Providing packet, .*?provider-8.*?
-Processing packet, .*?provider-8.*?
-Pushing packet, .*?provider-8.*?
-Collecting packet, .*?provider-7.*?
-Pulling packet, .*?provider-8.*?
-Providing packet, .*?provider-9.*?
-Processing packet, .*?provider-9.*?
-Pushing packet, .*?provider-9.*?
-Collecting packet, .*?provider-8.*?
-Pulling packet, .*?provider-9.*?
-Providing packet, .*?provider-10.*?
-Processing packet, .*?provider-10.*?
-Pushing packet, .*?provider-10.*?
-Collecting packet, .*?provider-9.*?
-Pulling packet, .*?provider-10.*?
-Providing packet, .*?provider-11.*?
-Processing packet, .*?provider-11.*?
-Pushing packet, .*?provider-11.*?
-Collecting packet, .*?provider-10.*?
+
+At 0s: Providing packet, .*?provider-0.*?
+At 0s: Processing packet, .*?provider-0.*?
+At 0s: Pushing packet, .*?provider-0.*?
+At 0s: Pulling packet, .*?provider-0.*?
+At 0s: Collecting packet, .*?provider-0.*?
+
+Running simulation...
+At 0s: Providing packet, .*?provider-1.*?
+At 0s: Processing packet, .*?provider-1.*?
+At 0s: Pushing packet, .*?provider-1.*?
+At 1s: Pulling packet, .*?provider-1.*?
+At 1s: Providing packet, .*?provider-2.*?
+At 1s: Processing packet, .*?provider-2.*?
+At 1s: Pushing packet, .*?provider-2.*?
+At 1s: Collecting packet, .*?provider-1.*?
+At 2s: Pulling packet, .*?provider-2.*?
+At 2s: Providing packet, .*?provider-3.*?
+At 2s: Processing packet, .*?provider-3.*?
+At 2s: Pushing packet, .*?provider-3.*?
+At 2s: Collecting packet, .*?provider-2.*?
+At 3s: Pulling packet, .*?provider-3.*?
+At 3s: Providing packet, .*?provider-4.*?
+At 3s: Processing packet, .*?provider-4.*?
+At 3s: Pushing packet, .*?provider-4.*?
+At 3s: Collecting packet, .*?provider-3.*?
+At 4s: Pulling packet, .*?provider-4.*?
+At 4s: Providing packet, .*?provider-5.*?
+At 4s: Processing packet, .*?provider-5.*?
+At 4s: Pushing packet, .*?provider-5.*?
+At 4s: Collecting packet, .*?provider-4.*?
+At 5s: Pulling packet, .*?provider-5.*?
+At 5s: Providing packet, .*?provider-6.*?
+At 5s: Processing packet, .*?provider-6.*?
+At 5s: Pushing packet, .*?provider-6.*?
+At 5s: Collecting packet, .*?provider-5.*?
+At 6s: Pulling packet, .*?provider-6.*?
+At 6s: Providing packet, .*?provider-7.*?
+At 6s: Processing packet, .*?provider-7.*?
+At 6s: Pushing packet, .*?provider-7.*?
+At 6s: Collecting packet, .*?provider-6.*?
+At 7s: Pulling packet, .*?provider-7.*?
+At 7s: Providing packet, .*?provider-8.*?
+At 7s: Processing packet, .*?provider-8.*?
+At 7s: Pushing packet, .*?provider-8.*?
+At 7s: Collecting packet, .*?provider-7.*?
+At 8s: Pulling packet, .*?provider-8.*?
+At 8s: Providing packet, .*?provider-9.*?
+At 8s: Processing packet, .*?provider-9.*?
+At 8s: Pushing packet, .*?provider-9.*?
+At 8s: Collecting packet, .*?provider-8.*?
+At 9s: Pulling packet, .*?provider-9.*?
+At 9s: Providing packet, .*?provider-10.*?
+At 9s: Processing packet, .*?provider-10.*?
+At 9s: Pushing packet, .*?provider-10.*?
+At 9s: Collecting packet, .*?provider-9.*?
+At 10s: Pulling packet, .*?provider-10.*?
+At 10s: Providing packet, .*?provider-11.*?
+At 10s: Processing packet, .*?provider-11.*?
+At 10s: Pushing packet, .*?provider-11.*?
+At 10s: Collecting packet, .*?provider-10.*?
+
+<!> Simulation time limit reached -- at t=10s
+
