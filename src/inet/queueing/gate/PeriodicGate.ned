@@ -25,6 +25,7 @@ simple PeriodicGate extends PacketGateBase like IPacketGate
                                                           // TODO required pair elements
                                                           // The last 0 mean the last-1 element continued with the first element
         bool scheduleForAbsoluteTime = default(true); // when a clock is used relative means that setting the clock will not affect the simulation time of the event
-        int changeTimerSchedulingPriority = default(0); // FES scheduling priority for the next gate state change event
+        int openSchedulingPriority = default(0); // FES scheduling priority for the next gate open event
+        int closeSchedulingPriority = default(0); // FES scheduling priority for the next gate close event
         @class(PeriodicGate);
 }

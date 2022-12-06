@@ -22,7 +22,8 @@ void PeriodicGate::initialize(int stage)
         initialOffset = par("offset");
         scheduleForAbsoluteTime = par("scheduleForAbsoluteTime");
         changeTimer = new ClockEvent("ChangeTimer");
-        changeTimer->setSchedulingPriority(par("changeTimerSchedulingPriority"));
+        openSchedulingPriority = par("openSchedulingPriority");
+        closeSchedulingPriority = par("closeSchedulingPriority");
         initializeGating();
     }
 }
@@ -47,7 +48,7 @@ void PeriodicGate::handleParameterChange(const char *name)
 void PeriodicGate::handleMessage(cMessage *message)
 {
     if (message == changeTimer) {
-        scheduleChangeTimer();
+        scheduleChangeTimer(isOpen_);
         processChangeTimer();
     }
     else
@@ -95,10 +96,10 @@ void PeriodicGate::initializeGating()
     if (changeTimer->isScheduled())
         cancelClockEvent(changeTimer);
     if (size > 0)
-        scheduleChangeTimer();
+        scheduleChangeTimer(!isOpen_);
 }
 
-void PeriodicGate::scheduleChangeTimer()
+void PeriodicGate::scheduleChangeTimer(bool toOpen)
 {
     ASSERT(0 <= index && index < (int)durations.size());
     clocktime_t duration = durations[index];
@@ -106,6 +107,7 @@ void PeriodicGate::scheduleChangeTimer()
         throw cRuntimeError("The duration parameter contains zero value at position %d", index);
     index = (index + 1) % durations.size();
     //std::cout << getFullPath() << " " << duration << std::endl;
+    changeTimer->setSchedulingPriority(toOpen ? closeSchedulingPriority : openSchedulingPriority);
     if (scheduleForAbsoluteTime)
         scheduleClockEventAt(getClockTime() + duration - offset, changeTimer);
     else
