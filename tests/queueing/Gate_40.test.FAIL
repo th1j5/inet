@@ -34,7 +34,7 @@ network TestProviderCollector
 network = TestProviderCollector
 sim-time-limit = 10s
 cmdenv-event-banners = false
-cmdenv-log-prefix = "At %ts: "
+cmdenv-log-prefix = "At #%e, %ts in %M: "
 *.provider.packetLength = 1B
 *.collector.collectionInterval = 1s
 *.gate.durations = [1s, 2s]
@@ -43,7 +43,7 @@ cmdenv-log-prefix = "At %ts: "
 %# remove formatting
 %subst: /\x1B\[[0-9;]*m//
 
-%subst: /\nRunning simulation\.\.\.\n//
+%#subst: /\nRunning simulation\.\.\.\n//
 
 %contains-regex: stdout
 At 1s: Closing gate.
