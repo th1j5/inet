@@ -70,7 +70,7 @@ void ExtEthernetTapDevice::handleMessage(cMessage *msg)
     ssize_t nwrite = write(fd, buffer, packetLength);
     if ((size_t)nwrite == packetLength) {
         emit(packetSentSignal, packet);
-        EV_INFO << "Sent a " << packet->getTotalLength() << " packet from " << ethHeader->getSrc() << " to " << ethHeader->getDest() << " to TAP device '" << device << "'.\n";
+        EV_INFO << "Sent a " << packet->getDataLength() << " packet from " << ethHeader->getSrc() << " to " << ethHeader->getDest() << " to TAP device '" << device << "'.\n";
         numSent++;
     }
     else
@@ -150,7 +150,7 @@ bool ExtEthernetTapDevice::notify(int fd)
         packet->setName(packetPrinter.printPacketToString(packet, packetNameFormat).c_str());
         emit(packetReceivedSignal, packet);
         const auto& macHeader = packet->peekAtFront<EthernetMacHeader>();
-        EV_INFO << "Received a " << packet->getTotalLength() << " packet from " << macHeader->getSrc() << " to " << macHeader->getDest() << ".\n";
+        EV_INFO << "Received a " << packet->getDataLength() << " packet from " << macHeader->getSrc() << " to " << macHeader->getDest() << ".\n";
         send(packet, "lowerLayerOut");
         emit(packetSentToLowerSignal, packet);
         numReceived++;

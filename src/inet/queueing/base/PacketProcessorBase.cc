@@ -135,7 +135,7 @@ void PacketProcessorBase::pushOrSendPacket(Packet *packet, cGate *gate, IPassive
 
 void PacketProcessorBase::pushOrSendPacketStart(Packet *packet, cGate *gate, IPassivePacketSink *consumer, bps datarate, int transmissionId)
 {
-    simtime_t duration = s(packet->getTotalLength() / datarate).get();
+    simtime_t duration = s(packet->getDataLength() / datarate).get();
     SendOptions sendOptions;
     sendOptions.duration(duration);
     sendOptions.updateTx(transmissionId, duration);
@@ -163,7 +163,7 @@ void PacketProcessorBase::pushOrSendPacketEnd(Packet *packet, cGate *gate, IPass
     else {
         auto progressTag = packet->addTagIfAbsent<ProgressTag>();
         progressTag->setDatarate(bps(NaN));
-        progressTag->setPosition(packet->getTotalLength());
+        progressTag->setPosition(packet->getDataLength());
         send(packet, sendOptions, gate);
     }
 }
@@ -171,7 +171,7 @@ void PacketProcessorBase::pushOrSendPacketEnd(Packet *packet, cGate *gate, IPass
 void PacketProcessorBase::pushOrSendPacketProgress(Packet *packet, cGate *gate, IPassivePacketSink *consumer, bps datarate, b position, b extraProcessableLength, int transmissionId)
 {
     // NOTE: duration is unknown due to arbitrarily changing datarate
-    simtime_t remainingDuration = s((packet->getTotalLength() - position) / datarate).get();
+    simtime_t remainingDuration = s((packet->getDataLength() - position) / datarate).get();
     SendOptions sendOptions;
     sendOptions.updateTx(transmissionId, remainingDuration);
     if (consumer != nullptr) {
@@ -179,7 +179,7 @@ void PacketProcessorBase::pushOrSendPacketProgress(Packet *packet, cGate *gate, 
             animatePushPacketStart(packet, gate, datarate, sendOptions);
             consumer->pushPacketStart(packet, gate->getPathEndGate(), datarate);
         }
-        else if (position == packet->getTotalLength()) {
+        else if (position == packet->getDataLength()) {
             animatePushPacketEnd(packet, gate, sendOptions);
             consumer->pushPacketEnd(packet, gate->getPathEndGate());
         }

@@ -87,7 +87,7 @@ void EthernetCutthroughSource::pushPacketEnd(Packet *packet, cGate *gate)
         delete streamedPacket;
         streamedPacket = nullptr;
         numProcessedPackets++;
-        processedTotalLength += packet->getTotalLength();
+        processedTotalLength += packet->getDataLength();
         cutthroughInProgress = false;
         b cutthroughPosition = getCutthroughSwitchingHeaderSize(packet);
         auto cutthroughData = packet->removeDataAt(cutthroughPosition, packet->getDataLength() - cutthroughPosition - ETHER_FCS_BYTES);

@@ -44,7 +44,7 @@ std::string PacketBufferBase::resolveDirective(char directive) const
         case 'p':
             return std::to_string(getNumPackets());
         case 'l':
-            return getTotalLength().str();
+            return getDataLength().str();
         case 'a':
             return std::to_string(numAddedPackets);
         case 'r':

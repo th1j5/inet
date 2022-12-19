@@ -57,7 +57,7 @@ void CutthroughSource::pushPacketEnd(Packet *packet, cGate *gate)
     delete streamedPacket;
     streamedPacket = nullptr;
     numProcessedPackets++;
-    processedTotalLength += packet->getTotalLength();
+    processedTotalLength += packet->getDataLength();
     delete packet;
     updateDisplayString();
 }

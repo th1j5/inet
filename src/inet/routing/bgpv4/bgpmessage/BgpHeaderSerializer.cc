@@ -28,7 +28,7 @@ void BgpHeaderSerializer::serialize(MemoryOutputStream& stream, const Ptr<const 
             throw cRuntimeError("Cannot serialize BGP Message: marker must be set to all ones.");
         stream.writeByte(marker);
     }
-    uint16_t totalLength = bgpHeader->getTotalLength();
+    uint16_t totalLength = bgpHeader->getDataLength();
     if (totalLength < 19 || totalLength > 4096)
         throw cRuntimeError("Cannot serialize BGP Message: totalLength field must be at least 19 and no greater than 4096.");
     stream.writeUint16Be(totalLength);

@@ -143,7 +143,7 @@ void PacketFilterBase::pushPacketProgress(Packet *packet, cGate *gate, bps datar
     if (matchesPacket(packet)) {
         processPacket(packet);
         EV_INFO << "Passing through packet" << EV_FIELD(packet) << EV_ENDL;
-        if (packet->getTotalLength() == position + extraProcessableLength)
+        if (packet->getDataLength() == position + extraProcessableLength)
             endPacketStreaming(packet);
         pushOrSendPacketProgress(packet, outputGate, consumer, datarate, position, extraProcessableLength, packet->getTransmissionId());
     }
@@ -264,7 +264,7 @@ void PacketFilterBase::dropPacket(Packet *packet)
 void PacketFilterBase::dropPacket(Packet *packet, PacketDropReason reason, int limit)
 {
     numDroppedPackets++;
-    droppedTotalLength += packet->getTotalLength();
+    droppedTotalLength += packet->getDataLength();
     PacketProcessorBase::dropPacket(packet, reason, limit);
 }
 

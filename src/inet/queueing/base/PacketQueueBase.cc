@@ -69,7 +69,7 @@ std::string PacketQueueBase::resolveDirective(char directive) const
         case 'p':
             return std::to_string(getNumPackets());
         case 'l':
-            return getTotalLength().str();
+            return getDataLength().str();
         case 'u':
             return std::to_string(numPushedPackets);
         case 'o':
