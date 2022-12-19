@@ -211,6 +211,8 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                 scheduleAfter(dblrand() * slotDuration, wakeup);
                 return;
             }
+            else
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
             break;
         case SLEEP:
             if (kind == XMAC_WAKE_UP) {
@@ -233,6 +235,7 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
             }
             // received messages prior real-switching to SLEEP? I'm sorry, out
             else {
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
                 EV_DEBUG << "node " << address << " : State SLEEP, receive message with kind=" << kind << ", ignored" << endl;
                 return;
             }
@@ -314,6 +317,8 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                 }
                 return;
             }
+            else
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
             break;
 
         case SEND_PREAMBLE:
@@ -333,6 +338,7 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                     EV_DEBUG << "node " << address << " : preamble_phase rx, simTime = " << simTime() << endl;
                     scheduleAfter(1.0f * checkInterval, switch_preamble_phase);
                 }
+                else { ASSERT(false); }
                 return;
             }
             // radio switch from above
@@ -396,6 +402,7 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                 return;
             }
             else {
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
                 return;
             }
             break;
@@ -415,10 +422,13 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                 changeDisplayColor(BLACK);
                 return;
             }
+            else
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
             break;
 
         case WAIT_ACK:
             // not used
+            throw cRuntimeError("Unaccepted message: kind=%d", kind);
             break;
 
         case WAIT_DATA:
@@ -476,6 +486,8 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                 changeDisplayColor(BLACK);
                 return;
             }
+            else
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
             break;
 
         case SEND_ACK:
@@ -486,6 +498,8 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                 macState = WAIT_ACK_TX;
                 return;
             }
+            else
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
             break;
 
         case WAIT_ACK_TX:
@@ -499,6 +513,8 @@ void XMac::handleStateEvent(short kind, cMessage *msg)
                 radio->setRadioMode(IRadio::RADIO_MODE_RECEIVER);
                 return;
             }
+            else
+                throw cRuntimeError("Unaccepted message: kind=%d", kind);
             break;
     }
     throw cRuntimeError("Undefined event of type %d in state %d (Radio state %d)!",
@@ -556,6 +572,8 @@ void XMac::receiveSignal(cComponent *source, simsignal_t signalID, intval_t valu
                 scheduleAfter(SIMTIME_ZERO, ack_tx_over);
             }
         }
+        else if (transmissionState == IRadio::TRANSMISSION_STATE_TRANSMITTING && newRadioTransmissionState == IRadio::TRANSMISSION_STATE_TRANSMITTING)
+            throw cRuntimeError("WHAT???");
         transmissionState = newRadioTransmissionState;
     }
     else if (signalID == IRadio::radioModeChangedSignal) {
