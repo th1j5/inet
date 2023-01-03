@@ -4,10 +4,18 @@ Credit-Based Shaping
 Goals
 -----
 
-The credit-based traffic shaper can be used to smooth-out traffic and reduce bursting in network nodes' outgoing interfaces. The shaper– adds gaps between successive packets of an incoming packet burst, 
-and can enable different priority traffic to get transmitted in the gaps, and thus reduce its delay.
+Credit-based shaping is a method of smoothing out traffic and reducing bursting
+in the outgoing interfaces of network nodes. It works by adding gaps, or idle
+periods, between successive packets of an incoming packet burst. These gaps can
+be used to transmit different types of traffic, such as high-priority traffic,
+which can help to reduce the delay of this traffic. Credit-based shaping is
+often used to improve the performance of time-sensitive applications by reducing
+the delay and jitter of their traffic.
 
-In this example we demonstrate how to use the credit-based traffic shaper.
+In this example, we will demonstrate how to use the credit-based traffic shaper
+to smooth out traffic and reduce bursting in network nodes. By the end of this
+example, you will understand how credit-based shaping works and how it can be
+used to improve the performance of time-sensitive applications in a network.
 
 .. **TODO** some interesting stuff to show? -> shaping in general increases delay even for high priority frames. but can overall decrease delay (as it decreases delay for lower priority frames)
 

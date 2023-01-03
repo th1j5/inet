@@ -4,10 +4,9 @@ Using gPTP
 Goals
 -----
 
-The Generic Precision Time Protocol (gPTP, IEEE 802.1 AS) can synchronize clocks in a network with high accuracy, which is useful for TSN, among others.
-
-In this showcase we demonstrate how to configure gPTP master clocks, bridges, and end stations to achieve
-reliable time synchronization throughout the whole network.
+The Generic Precision Time Protocol (gPTP, as specified in IEEE 802.1AS) is a network protocol that can synchronize clocks with high accuracy. 
+This is useful for applications such as Time-Sensitive Networking (TSN). In this showcase, we will demonstrate how to configure gPTP master clocks, 
+bridges, and end stations to establish reliable time synchronization across the entire network.
 
 | INET version: ``4.4``
 | Source files location: `inet/showcases/tsn/timesynchronization/gptp <https://github.com/inet-framework/inet/tree/master/showcases/tsn/timesynchronization/gptp>`__
