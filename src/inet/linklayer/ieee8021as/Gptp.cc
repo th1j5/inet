@@ -171,8 +171,12 @@ void Gptp::handleMessage(cMessage *msg)
         auto gptp = packet->peekAtFront<GptpBase>();
         auto gptpMessageType = gptp->getMessageType();
         auto incomingNicId = packet->getTag<InterfaceInd>()->getInterfaceId();
+        int incomingDomainNumber = gptp->getDomainNumber();
 
-        if (incomingNicId == slavePortId) {
+        if (incomingDomainNumber != domainNumber) {
+            EV_ERROR << "Message " << msg->getClassAndFullName() << " arrived with foreign domainNumber " << incomingDomainNumber << ", dropped\n";
+        }
+        else if (incomingNicId == slavePortId) {
             // slave port
             switch (gptpMessageType) {
                 case GPTPTYPE_SYNC:
