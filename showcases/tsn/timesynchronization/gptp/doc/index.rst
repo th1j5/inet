@@ -8,7 +8,7 @@ The Generic Precision Time Protocol (gPTP, as specified in IEEE 802.1AS) is a ne
 This is useful for applications such as Time-Sensitive Networking (TSN). In this showcase, we will demonstrate how to configure gPTP master clocks, 
 bridges, and end stations to establish reliable time synchronization across the entire network.
 
-| INET version: ``4.4``
+| INET version: ``4.5``
 | Source files location: `inet/showcases/tsn/timesynchronization/gptp <https://github.com/inet-framework/inet/tree/master/showcases/tsn/timesynchronization/gptp>`__
 
 About gPTP
@@ -65,15 +65,21 @@ The spanning tree is created by labeling nodes' interfaces (called `ports`) as e
 Master nodes only have master ports, and slave nodes only slave ports (bridge nodes have both). Consequently, since 
 these ports define the spanning tree, each node can have just one slave port.
 
-The :ned:`Gptp` module has two distinct mechanisms:
+The :ned:`Gptp` module has the following distinct mechanisms:
 
 - `peer delay measurement`: Slave and bridge nodes periodically measure link delay by sending peer delay request messages (``pDelayReq``) up-tree; 
   they receive peer delay response messages (``pDelayResp``).
 - `time synchronization`: Master nodes periodically broadcast gPTP sync messages (``GptpSync``) with the correct time that propagate down-tree.
+- `slave clock drift rate compensation`: The drift rate of slave clocks is align to that of the master clock, by setting the oscillator compensation factor in slave clocks. The compensation factor is calculated from the time of the master clock at the current and the previous synchronization event. 
 
 .. note:: Recipients of these messages need to know the timestamp of when those messages were sent to be able to calculate "correct" time. Currently, only two-step synchronization is supported, i.e., ``pDelayResp`` and ``GptpSync`` messages are immediately proceeded by follow-up messages that contain the precise time when the original ``pDelayResp``/``GptpSync`` message was sent. Clocks are set to the new time when the follow-up message is received.
 
+.. **TODO** oscillator compensation factor
 
+The diverging drift rate of slave clocks is also compensated for at time synchonization events, by setting the oscillator compensation factor in slave clocks.
+The compensated drift rate is calculated from the time of the master clock at the current and previous time synchonization events.
+
+**TODO** which one?
 
 Nodes send sync and peer delay measurement messages periodically.
 The period and offset of sync and peer delay measurement messages can be specified by parameters (:par:`syncInterval`, :par:`pDelayInterval`, 
@@ -101,7 +107,10 @@ In this showcase, we demonstrate the setup and operation of gPTP in three simula
   the stand-by clock can take over and become the new Master Clock.
 - **Two Master Clocks Exploiting Network Redundancy**: A larger network containing a primary and a hot-standby master node, with two time domains each. Time synchronization is protected against the failure of a master node and any link in the network.
 
-In the ``General`` configuration, we enable :ned:`Gptp` modules in all network nodes, and configure a random, constant clock drift for all clocks in the network:
+In the ``General`` configuration, we enable :ned:`Gptp` modules in all network nodes, and configure a random clock drift rate for the master clocks, and a constant clock drift rate
+for the clocks in slave and bridge nodes (specified with a random distribution for each one):
+
+.. **TODO** actually, its random for the clock nodes and constant for all others
 
 .. literalinclude:: ../omnetpp.ini
    :language: ini
@@ -143,10 +152,21 @@ Here is the spanning tree indicated by the direction of gPTP sync messages:
 
 We examine clock drift of all clocks by plotting the clock time difference against simulation time:
 
+.. .. figure:: media/OneMasterClock_.png
+..    :align: center
+
 .. figure:: media/OneMasterClock.png
    :align: center
 
-The difference to simulation time increases for the master clock, and the slave clocks are periodically synchronized to the master clock's time (so they keep drifting together).
+.. The difference to simulation time increases for the master clock, and the slave clocks are periodically synchronized to the master clock's time (so they keep drifting together).
+
+The master clock's time drifts according to a random walk process, and the slave clocks are periodically synchronized to the master clock's time (so they keep drifting together).
+Note that the drift rate is compensated for after the first two synchronization events. **TODO** which one to include? 1. according to the last two events 2. according to the current and previous event
+
+All such charts have these two large sawtooth patterns at the beginning. From now on, we will generally omit these to concentrate on the details of the clock drift after it has been stabilized
+by time synchronization.
+
+**TODO** at first the slave clocks are all over the place but later they drift together because the drift rate is similarly compensated for all of them so they overlap
 
 .. note:: A `clock time difference to simulation time` chart can be easily produced by plotting the ``timeChanged:vector`` statistic, and applying a linear trend operation with -1 as argument.
 
@@ -162,7 +182,7 @@ that is also synchronized to the primary master clock. This connection effective
 causes the two time domains to be totally synchronized and allows seamless failover
 in the case of the master clock failure.
 
-.. note:: - This setup only contains the possibility of failover, it isn't actually demonstrated here. The master clock failure is demonstrated in the :doc:`/showcases/tsn/combiningfeatures/gptpandtas/doc/index` showcase.
+.. note:: - This setup only contains the possibility of failover, but it isn't actually demonstrated here. The master clock failure is demonstrated in the :doc:`/showcases/tsn/combiningfeatures/gptpandtas/doc/index` showcase.
 
 The network contains two clock nodes (:ned:`TsnClock`) and four TSN device nodes (:ned:`TsnDevice`), connected by two TSN switches (:ned:`TsnSwitch`):
 
@@ -246,25 +266,66 @@ The spanning tree is visualized as the datalink-layer gPTP message transmissions
 Let's examine some clock drift charts. Instead of plotting clock drift for all clocks in one chart, let's use three charts so they are less cluttered. Here is the 
 clock drift (clock time difference to simulation time) of the two `master clocks`:
 
+.. .. figure:: media/PrimaryAndHotStandBy_masterclocks_.png
+..    :align: center
+
 .. figure:: media/PrimaryAndHotStandBy_masterclocks.png
    :align: center
 
-The two master clocks have a different drift rate, and the hot-standby master clock is periodically synchronized to the primary.
+.. The two master clocks have a different drift rate, and the hot-standby master clock is periodically synchronized to the primary.
+
+Both master clocks have a random drift rate, but the hot-standby master clock's time and clock drift rate are periodically synchronized to the primary.
 
 Here is the clock drift of all clocks in `time domain 0` (primary master):
+
+.. .. figure:: media/PrimaryAndHotStandBy_timedomain0_.png
+..    :align: center
 
 .. figure:: media/PrimaryAndHotStandBy_timedomain0.png
    :align: center
 
-Each clock has a different drift rate, but they are periodically synchronized to the primary master clock.
+.. figure:: media/PrimaryAndHotStandBy_timedomain0_zoomed.png
+   :align: center
+
+**V1** Each clock has a different drift rate, but they are periodically synchronized to the primary master clock.
+
+.. **TODO**
+
+.. - each clock has a different but constant drift rate
+.. - the master clock has a random drift rate
+.. - the slave clocks are periodically synchronized to the master clock
+.. - after the first two sync events, the drift rate is compensated for, so its more in line with the master clock's
+.. - however, the oscillator compensation factor is set according to the drift rate at the last two synchronization events, but the master clock's drift rate keeps changing,
+..   so they need to compensated again
+
+**V2** Each slave clock has a distinct but constant drift rate, while the
+master clock's drift rate fluctuates randomly.
+The slave clocks are periodically synced with the
+master clock. After the initial two synchronization events, the drift rate of
+the slave clocks is adjusted to align with that of the master
+clock. However, the oscillator compensation factor in each slave clock is
+determined by the drift rate at the last two synchronization points, and as the
+master clock's drift rate continues to change, the slave clocks can drift away
+from the master clock. It is worth noting that after the first compensation, all
+the slave clocks have the same drift rate.
 
 Let's see the clock drift for all clocks in `time domain 1` (hot-standby master):
+
+.. .. figure:: media/PrimaryAndHotStandBy_timedomain1_.png
+..    :align: center
 
 .. figure:: media/PrimaryAndHotStandBy_timedomain1.png
    :align: center
 
+**TODO**
+
 The clocks have different drift rates, and they are periodically synchronized to the hot-standby master clock (displayed with the thick blue line). 
 The hot-standby master clock itself drifts from the primary master, and gets synchronized periodically. The upper bound of the time difference is apparent on the chart.
+
+Note that the slave clocks in domain TODO get synchronized just before the time of the hot stand-by master clock is updated in domain TODO.
+As in the previous cases, the drift of the slave clocks is compensated to be the same. **TODO** why
+
+**TODO** mention the same compensated drift rate? -> the focus is not that here
 
 In the next section, we make the network more redundant, so that the primary master clock `and` any link in the network can fail
 without breaking time synchronization. 
@@ -347,20 +408,38 @@ Here is the spanning tree visualized by gPTP messages:
 
 Just as in the previous sections, let's examine the clock drift of the different clocks in the network. Here is the clock drift of the master clocks:
 
-.. figure:: media/ExploitingNetworkRedundancy_masterclocks.png
+.. .. figure:: media/ExploitingNetworkRedundancy_masterclocks_.png
+..    :align: center
+
+.. .. figure:: media/ExploitingNetworkRedundancy_masterclocks.png
+..    :align: center
+
+.. figure:: media/ExploitingNetworkRedundancy_masterclocks_zoomed.png
    :align: center
 
 The clocks of the hot-standby master node are synced to the time of the primary master periodically. Note that the sync times have the offset we configured. 
 Let's see the clock drifts in domain 0 (the primary master clock is plotted with the thicker line):
 
-.. figure:: media/ExploitingNetworkRedundancy_domain0.png
-   :align: center 
+.. .. figure:: media/ExploitingNetworkRedundancy_domain0_.png
+..    :align: center 
+
+.. .. figure:: media/ExploitingNetworkRedundancy_domain0.png
+..    :align: center 
+
+.. figure:: media/ExploitingNetworkRedundancy_domain0_zoomed.png
+   :align: center
 
 In Domain 0, all clocks sync to the primary master clock. They sync at the same time, because the offsets are between domains.
 The clock drift in Domain 1 is similar, so we don't include it here. Let's see Domain 2 (the primary master clock is displayed with a dashed line for reference, 
 as it's not part of this domain; the hot-standby master clock in this domain is displayed with the thicker line):
 
-.. figure:: media/ExploitingNetworkRedundancy_domain2.png
+.. .. figure:: media/ExploitingNetworkRedundancy_domain2_.png
+..    :align: center
+
+.. .. figure:: media/ExploitingNetworkRedundancy_domain2.png
+..    :align: center
+
+.. figure:: media/ExploitingNetworkRedundancy_domain2_zoomed.png
    :align: center
 
 All switches and devices sync to the hot-standby master clock (which itself is synced to the primary master periodically).
