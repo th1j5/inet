@@ -69,17 +69,21 @@ The :ned:`Gptp` module has the following distinct mechanisms:
 
 - `peer delay measurement`: Slave and bridge nodes periodically measure link delay by sending peer delay request messages (``pDelayReq``) up-tree; 
   they receive peer delay response messages (``pDelayResp``).
-- `time synchronization`: Master nodes periodically broadcast gPTP sync messages (``GptpSync``) with the correct time that propagate down-tree.
-- `slave clock drift rate compensation`: The drift rate of slave clocks is aligned to that of the master clock, by setting the oscillator compensation factor in slave clocks. The compensation factor is calculated from the time of the master clock at the current and the previous synchronization event. 
+- `time synchronization`: Master nodes periodically broadcast gPTP sync messages (``GptpSync``) with their local time that propagate down-tree. The time of slave clocks is set to the time of the master clock, corrected for link and processing delays. Furthermore, the drift rate of slave clocks is aligned to that of the master clock by setting the oscillator compensation factor. The compensation factor is estimated from the time of the master and slave clocks at the current and the previous synchronization events. 
 
 .. note:: Recipients of these messages need to know the timestamp of when those messages were sent to be able to calculate "correct" time. Currently, only two-step synchronization is supported, i.e., ``pDelayResp`` and ``GptpSync`` messages are immediately proceeded by follow-up messages that contain the precise time when the original ``pDelayResp``/``GptpSync`` message was sent. Clocks are set to the new time when the follow-up message is received.
 
+How does the oscillator compensation factor work/important stuff?
+
+- horizontal scale 1000000x!
+- this can be misleading -> y-axis zoomed out chart
+
 .. **TODO** oscillator compensation factor
 
-The diverging drift rate of slave clocks is also compensated for at time synchonization events, by setting the oscillator compensation factor in slave clocks.
-The compensated drift rate is calculated from the time of the master clock at the current and previous time synchonization events.
+.. The diverging drift rate of slave clocks is also compensated for at time synchonization events, by setting the oscillator compensation factor in slave clocks.
+.. The compensated drift rate is calculated from the time of the master clock at the current and previous time synchonization events.
 
-**TODO** which one?
+.. **TODO** which one?
 
 Nodes send sync and peer delay measurement messages periodically.
 The period and offset of sync and peer delay measurement messages can be specified by parameters (:par:`syncInterval`, :par:`pDelayInterval`, 
@@ -170,10 +174,10 @@ compensated to be more aligned with the master clock's drift rate.
 
 .. **TODO** which one to include? 1. according to the last two events 2. according to the current and previous event
 
-All such charts have these two large sawtooth patterns at the beginning. From now on, we will generally omit these to concentrate on the details of the clock drift after it has been stabilized
+All such charts have these two large sawtooth patterns at the beginning, before the drift rate is compensated. From now on, we will generally omit these to concentrate on the details of the clock drift after it has been stabilized
 by time synchronization.
 
-**TODO** at first the slave clocks are all over the place but later they drift together because the drift rate is similarly compensated for all of them so they overlap
+.. **TODO** at first the slave clocks are all over the place but later they drift together because the drift rate is similarly compensated for all of them so they overlap
 
 .. note:: A `clock time difference to simulation time` chart can be easily produced by plotting the ``timeChanged:vector`` statistic, and applying a linear trend operation with -1 as argument.
 
@@ -326,15 +330,19 @@ Let's see the clock drift for all clocks in `time domain 1` (hot-standby master)
 .. figure:: media/PrimaryAndHotStandBy_timedomain1.png
    :align: center
 
-**TODO**
+.. **TODO**
 
 The clocks have different drift rates, and they are periodically synchronized to the hot-standby master clock (displayed with the thick blue line). 
 The hot-standby master clock itself drifts from the primary master, and gets synchronized periodically. The upper bound of the time difference is apparent on the chart.
 
-Note that the slave clocks in domain TODO get synchronized just before the time of the hot stand-by master clock is updated in domain TODO.
-As in the previous cases, the drift of the slave clocks is compensated to be the same. **TODO** why
+Note that the slave clocks in domain 1 get synchronized just before the time of the hot stand-by master clock is updated in domain 0.
+As in the previous cases, the drift rate of slave clocks is compensated to be more aligned with the master clock's rate.
 
-**TODO** mention the same compensated drift rate? -> the focus is not that here
+.. **TODO** mention the same compensated drift rate? -> the focus is not that here
+
+.. note:: The magnitude of slave clock divergence from the master clock might appear to be large on these charts, but it is only in the order of microseconds (the scale of the y axis is a millionth of the x axis).
+
+.. warning:: The magnitude of slave clock divergence from the master clock might appear to be large on these charts, but it is only in the order of microseconds (the scale of the y axis is a millionth of the x axis).
 
 In the next section, we make the network more redundant, so that the primary master clock `and` any link in the network can fail
 without breaking time synchronization. 
