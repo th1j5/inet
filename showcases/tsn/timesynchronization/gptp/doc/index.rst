@@ -73,10 +73,10 @@ The :ned:`Gptp` module has the following distinct mechanisms:
 
 .. note:: Recipients of these messages need to know the timestamp of when those messages were sent to be able to calculate "correct" time. Currently, only two-step synchronization is supported, i.e., ``pDelayResp`` and ``GptpSync`` messages are immediately proceeded by follow-up messages that contain the precise time when the original ``pDelayResp``/``GptpSync`` message was sent. Clocks are set to the new time when the follow-up message is received.
 
-How does the oscillator compensation factor work/important stuff?
+.. How does the oscillator compensation factor work/important stuff?
 
-- horizontal scale 1000000x!
-- this can be misleading -> y-axis zoomed out chart
+.. - horizontal scale 1000000x!
+.. - this can be misleading -> y-axis zoomed out chart
 
 .. **TODO** oscillator compensation factor
 
