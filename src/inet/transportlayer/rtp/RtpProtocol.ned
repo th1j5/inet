@@ -15,7 +15,7 @@ package inet.transportlayer.rtp;
 // Much of the work is done by dynamically created Profile, and Payload
 // Sender and Receiver modules (the latter two are created by Profile).
 //
-// See ~RtpProfile, ~RtpAvProfile, ~RtpProtocol
+// See ~RtpProfile, ~RtpAvProfile
 //
 //# TODO Translate:
 //# Az ~Rtp az appIn gate-en a következő üzeneteket fogadja az application-tól:
@@ -53,32 +53,25 @@ package inet.transportlayer.rtp;
 //#   - ~RtpCiSessionLeft:
 //#         Értesíti az App-ot, hogy véget lett a session-nek és törölte az ~RtpProfile-t.
 //#         params: ---
-module Rtp
+simple RtpProtocol
 {
     parameters:
         string interfaceTableModule;   // The path to the InterfaceTable module
         string routingTableModule;
-        *.interfaceTableModule = default(absPath(this.interfaceTableModule));
-        *.routingTableModule = default(absPath(this.routingTableModule));
-        @display("bgb=400,300;i=block/buffer");
+        @class(Rtp);
+        @display("i=block/buffer");
+        @signal[packetReceived](type=cPacket);
+        @statistic[packetReceived](title="packets received"; source=packetReceived; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
+        @statistic[endToEndDelay](title="end-to-end delay"; source="dataAge(packetReceived)"; unit=s; record=histogram,vector; interpolationmode=none);
 
     gates:
         input appIn @labels(RtpInterfacePacket/down);
+        input profileIn @labels(RtpInnerPacket);
         input rtcpIn @labels(RtpInnerPacket);
         input udpIn @labels(UdpControlInfo/up);
         output appOut @labels(RtpInterfacePacket/up);
+        output profileOut @labels(RtpInnerPacket);
         output rtcpOut @labels(RtpInnerPacket);
         output udpOut @labels(UdpControlInfo/down);
-    submodules:
-        rtpProtocol: RtpProtocol {
-            @display("p=100,100");
-        }
-    connections allowunconnected:
-        appIn --> { @display("m=n"); } --> rtpProtocol.appIn;
-        rtpProtocol.appOut --> { @display("m=n"); } --> appOut;
-        rtcpIn --> { @display("m=e"); } --> rtpProtocol.rtcpIn;
-        rtpProtocol.rtcpOut --> { @display("m=e"); } --> rtcpOut;
-        udpIn --> { @display("m=s"); } --> rtpProtocol.udpIn;
-        rtpProtocol.udpOut --> { @display("m=s"); } --> udpOut;
 }
 

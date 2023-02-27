@@ -366,7 +366,7 @@ void Rtp::createProfile(const char *profileName)
     if (moduleType == nullptr)
         throw cRuntimeError("Profile type `%s' not found", profileName);
 
-    RtpProfile *profile = check_and_cast<RtpProfile *>(moduleType->create("Profile", this));
+    RtpProfile *profile = check_and_cast<RtpProfile *>(moduleType->create("Profile", getParentModule()));
     profile->finalizeParameters();
 
     profile->setGateSize("payloadReceiverOut", 30);
@@ -377,6 +377,8 @@ void Rtp::createProfile(const char *profileName)
 
     profile->callInitialize();
     profile->scheduleStart(simTime());
+    profile->getDisplayString().setTagArg("p", 0, 200);
+    profile->getDisplayString().setTagArg("p", 1, 200);
 }
 
 void Rtp::createSocket()
