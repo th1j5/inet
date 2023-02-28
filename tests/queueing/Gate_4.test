@@ -1,9 +1,9 @@
 %description:
 
 In this test, packets are collected periodically by an active packet sink
-(ActivePacketSink). The packets pass through a periodic packet gate and the
-gate is continuously open. The packets are provided by a passive packet
-source (PassivePacketSource).
+(ActivePacketSink). The packets pass through a periodic packet gate if it's
+open, otherwise packets are not generated. The packets are provided by a
+passive packet source (PassivePacketSource).
 
 %file: test.ned
 
@@ -34,10 +34,11 @@ network TestProviderCollector
 network = TestProviderCollector
 sim-time-limit = 10s
 cmdenv-event-banners = false
+cmdenv-log-prefix = "At %ts: "
 *.provider.packetLength = 1B
 *.collector.collectionInterval = 1s
-*.gate.initiallyOpen = true
-*.gate.durations = []
+*.gate.durations = [1s, 2s]
+*.gate.bitrate = 8bps
 
 %# remove formatting
 %subst: /\x1B\[[0-9;]*m//
@@ -45,36 +46,25 @@ cmdenv-event-banners = false
 %subst: /\nRunning simulation\.\.\.\n//
 
 %contains-regex: stdout
-Providing packet, .*?provider-0.*?
-Passing through packet, .*?provider-0.*?
-Collecting packet, .*?provider-0.*?
-Providing packet, .*?provider-1.*?
-Passing through packet, .*?provider-1.*?
-Collecting packet, .*?provider-1.*?
-Providing packet, .*?provider-2.*?
-Passing through packet, .*?provider-2.*?
-Collecting packet, .*?provider-2.*?
-Providing packet, .*?provider-3.*?
-Passing through packet, .*?provider-3.*?
-Collecting packet, .*?provider-3.*?
-Providing packet, .*?provider-4.*?
-Passing through packet, .*?provider-4.*?
-Collecting packet, .*?provider-4.*?
-Providing packet, .*?provider-5.*?
-Passing through packet, .*?provider-5.*?
-Collecting packet, .*?provider-5.*?
-Providing packet, .*?provider-6.*?
-Passing through packet, .*?provider-6.*?
-Collecting packet, .*?provider-6.*?
-Providing packet, .*?provider-7.*?
-Passing through packet, .*?provider-7.*?
-Collecting packet, .*?provider-7.*?
-Providing packet, .*?provider-8.*?
-Passing through packet, .*?provider-8.*?
-Collecting packet, .*?provider-8.*?
-Providing packet, .*?provider-9.*?
-Passing through packet, .*?provider-9.*?
-Collecting packet, .*?provider-9.*?
-Providing packet, .*?provider-10.*?
-Passing through packet, .*?provider-10.*?
-Collecting packet, .*?provider-10.*?
+
+At 0s: Providing packet, .*?provider-0.*?
+At 0s: Passing through packet, .*?provider-0.*?
+At 0s: Collecting packet, .*?provider-0.*?
+At 1s: Closing gate.
+At 3s: Opening gate.
+At 3s: Providing packet, .*?provider-1.*?
+At 3s: Passing through packet, .*?provider-1.*?
+At 3s: Collecting packet, .*?provider-1.*?
+At 4s: Closing gate.
+At 6s: Opening gate.
+At 6s: Providing packet, .*?provider-2.*?
+At 6s: Passing through packet, .*?provider-2.*?
+At 6s: Collecting packet, .*?provider-2.*?
+At 7s: Closing gate.
+At 9s: Opening gate.
+At 9s: Providing packet, .*?provider-3.*?
+At 9s: Passing through packet, .*?provider-3.*?
+At 9s: Collecting packet, .*?provider-3.*?
+At 10s: Closing gate.
+
+<!> Simulation time limit reached -- at t=10s

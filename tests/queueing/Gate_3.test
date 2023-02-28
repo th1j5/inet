@@ -32,11 +32,12 @@ network TestProviderCollector
 
 [General]
 network = TestProviderCollector
-sim-time-limit = 10s
+sim-time-limit = 11s
 cmdenv-event-banners = false
+cmdenv-log-prefix = "At %ts: "
 *.provider.packetLength = 1B
 *.collector.collectionInterval = 1s
-*.gate.durations = [1s, 2s]
+*.gate.durations = [1.25s, 2.25s]
 
 %# remove formatting
 %subst: /\x1B\[[0-9;]*m//
@@ -44,24 +45,33 @@ cmdenv-event-banners = false
 %subst: /\nRunning simulation\.\.\.\n//
 
 %contains-regex: stdout
-Providing packet, .*?provider-0.*?
-Passing through packet, .*?provider-0.*?
-Collecting packet, .*?provider-0.*?
-Providing packet, .*?provider-1.*?
-Passing through packet, .*?provider-1.*?
-Collecting packet, .*?provider-1.*?
-Closing gate.
-Opening gate.
-Providing packet, .*?provider-2.*?
-Passing through packet, .*?provider-2.*?
-Collecting packet, .*?provider-2.*?
-Closing gate.
-Opening gate.
-Providing packet, .*?provider-3.*?
-Passing through packet, .*?provider-3.*?
-Collecting packet, .*?provider-3.*?
-Closing gate.
-Opening gate.
-Providing packet, .*?provider-4.*?
-Passing through packet, .*?provider-4.*?
-Collecting packet, .*?provider-4.*?
+At 0s: Providing packet, .*?provider-0.*?
+At 0s: Passing through packet, .*?provider-0.*?
+At 0s: Collecting packet, .*?provider-0.*?
+At 1s: Providing packet, .*?provider-1.*?
+At 1s: Passing through packet, .*?provider-1.*?
+At 1s: Collecting packet, .*?provider-1.*?
+At 1\.25s: Closing gate.
+At 3\.5s: Opening gate.
+At 3\.5s: Providing packet, .*?provider-2.*?
+At 3\.5s: Passing through packet, .*?provider-2.*?
+At 3\.5s: Collecting packet, .*?provider-2.*?
+At 4\.5s: Providing packet, .*?provider-3.*?
+At 4\.5s: Passing through packet, .*?provider-3.*?
+At 4\.5s: Collecting packet, .*?provider-3.*?
+At 4\.75s: Closing gate.
+At 7s: Opening gate.
+At 7s: Providing packet, .*?provider-4.*?
+At 7s: Passing through packet, .*?provider-4.*?
+At 7s: Collecting packet, .*?provider-4.*?
+At 8s: Providing packet, .*?provider-5.*?
+At 8s: Passing through packet, .*?provider-5.*?
+At 8s: Collecting packet, .*?provider-5.*?
+At 8\.25s: Closing gate.
+At 10\.5s: Opening gate.
+At 10\.5s: Providing packet, .*?provider-6.*?
+At 10\.5s: Passing through packet, .*?provider-6.*?
+At 10\.5s: Collecting packet, .*?provider-6.*?
+
+<!> Simulation time limit reached -- at t=11s
+
