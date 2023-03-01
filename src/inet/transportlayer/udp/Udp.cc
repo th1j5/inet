@@ -16,6 +16,8 @@
 #include "inet/common/ProtocolTag_m.h"
 #include "inet/common/checksum/TcpIpChecksum.h"
 #include "inet/common/lifecycle/NodeStatus.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/common/packet/chunk/EmptyChunk.h"
 #include "inet/common/socket/SocketTag_m.h"
 #include "inet/common/stlutils.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
@@ -49,6 +51,8 @@ namespace inet {
 Define_Module(Udp);
 Define_Module(UdpCrcInsertionHook);
 
+//TODO how to get value for checksum coverage field for UdpLite?
+
 Udp::Udp()
 {
 }
@@ -63,6 +67,7 @@ void Udp::initialize(int stage)
     OperationalBase::initialize(stage);
 
     if (stage == INITSTAGE_LOCAL) {
+        udpLiteMode = par("udpLiteMode");
         const char *crcModeString = par("crcMode");
         crcMode = parseCrcMode(crcModeString, true);
 
@@ -92,6 +97,7 @@ void Udp::initialize(int stage)
         if (crcMode == CRC_COMPUTED) {
             cModuleType *moduleType = cModuleType::get("inet.transportlayer.udp.UdpCrcInsertionHook");
             auto crcInsertion = check_and_cast<UdpCrcInsertionHook *>(moduleType->create("crcInsertion", this));
+            crcInsertion->udpLiteMode = udpLiteMode;
             crcInsertion->finalizeParameters();
             crcInsertion->callInitialize();
 
@@ -115,8 +121,8 @@ void Udp::initialize(int stage)
                 ipv6->registerHook(0, crcInsertion);
 #endif
         }
-        registerService(Protocol::udp, gate("appIn"), gate("appOut"));
-        registerProtocol(Protocol::udp, gate("ipOut"), gate("ipIn"));
+        registerService(udpLiteMode ? Protocol::udpLite : Protocol::udp, gate("appIn"), gate("appOut"));
+        registerProtocol(udpLiteMode ? Protocol::udpLite : Protocol::udp, gate("ipOut"), gate("ipIn"));
     }
 }
 
@@ -125,7 +131,7 @@ void Udp::handleLowerPacket(Packet *packet)
     // received from IP layer
     ASSERT(packet->getControlInfo() == nullptr);
     auto protocol = packet->getTag<PacketProtocolTag>()->getProtocol();
-    if (protocol == &Protocol::udp) {
+    if (protocol == (udpLiteMode ? &Protocol::udpLite : &Protocol::udp)) {
         processUDPPacket(packet);
     }
     else if (protocol == &Protocol::icmpv4) {
@@ -260,6 +266,23 @@ void Udp::handleUpperCommand(cMessage *msg)
                     setMulticastSourceFilter(sd, ie, cmd->getMulticastAddr(), cmd->getFilterMode(), sourceList);
                     break;
                 }
+                case UDPLITE_C_SETOPTION_SET_RECV_CSCOV: if (udpLiteMode) {
+                    auto cmd = check_and_cast<UdpLiteSetRecvCsCovCommand*>(ctrl);
+                    auto recvCsCov = cmd->getRecvCsCov();
+                    if (recvCsCov > 0 && recvCsCov < 8)
+                        throw cRuntimeError("illegal SendCsCov value: %u", recvCsCov);
+                    sd->udpliteRecvCsCov = B(recvCsCov);
+                    break;
+                }
+                case UDPLITE_C_SETOPTION_SET_SEND_CSCOV: if (udpLiteMode) {
+                    auto cmd = check_and_cast<UdpLiteSetSendCsCovCommand*>(ctrl);
+                    auto sendCsCov = cmd->getSendCsCov();
+                    if (sendCsCov > 0 && sendCsCov < 8)
+                        throw cRuntimeError("illegal SendCsCov value: %u", sendCsCov);
+                    sd->udpliteSendCsCov = B(sendCsCov);
+                    break;
+                }
+                default:
                     throw cRuntimeError("Unknown subclass of UdpSetOptionCommand received from app: code=%d, name=%s", ctrl->getOptionCode(), ctrl->getClassName());
             }
             break;
@@ -778,14 +801,17 @@ void Udp::handleUpperPacket(Packet *packet)
     if (totalLength.get() > UDP_MAX_MESSAGE_SIZE)
         throw cRuntimeError("send: total UDP message size exceeds %u", UDP_MAX_MESSAGE_SIZE);
 
-    udpHeader->setTotalLengthField(totalLength);
+    if (udpLiteMode && sd->udpliteSendCsCov != B(0))
+        udpHeader->setTotalLengthField(sd->udpliteSendCsCov);      //FIXME
+    else
+        udpHeader->setTotalLengthField(totalLength);
     if (crcMode == CRC_COMPUTED) {
         udpHeader->setCrcMode(CRC_COMPUTED);
         udpHeader->setCrc(0x0000); // crcMode == CRC_COMPUTED is done in an INetfilter hook
     }
     else {
         udpHeader->setCrcMode(crcMode);
-        insertCrc(l3Protocol, srcAddr, destAddr, udpHeader, packet);
+        insertCrc(l3Protocol, srcAddr, destAddr, udpHeader, packet, udpLiteMode);
     }
 
     insertTransportProtocolHeader(packet, Protocol::udp, udpHeader);
@@ -799,7 +825,7 @@ void Udp::handleUpperPacket(Packet *packet)
     numSent++;
 }
 
-void Udp::insertCrc(const Protocol *networkProtocol, const L3Address& srcAddress, const L3Address& destAddress, const Ptr<UdpHeader>& udpHeader, Packet *packet)
+void Udp::insertCrc(const Protocol *networkProtocol, const L3Address& srcAddress, const L3Address& destAddress, const Ptr<UdpHeader>& udpHeader, Packet *packet, bool udpLiteMode)
 {
     CrcMode crcMode = udpHeader->getCrcMode();
     switch (crcMode) {
@@ -817,12 +843,14 @@ void Udp::insertCrc(const Protocol *networkProtocol, const L3Address& srcAddress
             break;
         case CRC_COMPUTED: {
             auto length = udpHeader->getTotalLengthField();
+            if (udpLiteMode && length == B(0))
+                length = udpHeader->getChunkLength() + packet->getDataLength();
             // if the CRC mode is computed, then compute the CRC and set it
             // this computation is delayed after the routing decision, see INetfilter hook
             udpHeader->setCrc(0x0000); // make sure that the CRC is 0 in the Udp header before computing the CRC
             udpHeader->setCrcMode(CRC_DISABLED); // for serializer/deserializer checks only: deserializer sets the crcMode to disabled when crc is 0
             auto udpData = packet->peekDataAt(b(0), length - udpHeader->getChunkLength(), Chunk::PF_ALLOW_EMPTY);
-            auto crc = computeCrc(networkProtocol, srcAddress, destAddress, udpHeader, udpData);
+            auto crc = computeCrc(networkProtocol, srcAddress, destAddress, udpHeader, udpData, udpLiteMode);
             udpHeader->setCrc(crc);
             udpHeader->setCrcMode(CRC_COMPUTED);
             break;
@@ -832,14 +860,16 @@ void Udp::insertCrc(const Protocol *networkProtocol, const L3Address& srcAddress
     }
 }
 
-uint16_t Udp::computeCrc(const Protocol *networkProtocol, const L3Address& srcAddress, const L3Address& destAddress, const Ptr<const UdpHeader>& udpHeader, const Ptr<const Chunk>& udpData)
+uint16_t Udp::computeCrc(const Protocol *networkProtocol, const L3Address& srcAddress, const L3Address& destAddress, const Ptr<const UdpHeader>& udpHeader, const Ptr<const Chunk>& udpData, bool udpLiteMode)
 {
+    B length = udpLiteMode ? B(udpHeader->getChunkLength() + udpData->getChunkLength()) : udpHeader->getTotalLengthField();
     auto pseudoHeader = makeShared<TransportPseudoHeader>();
     pseudoHeader->setSrcAddress(srcAddress);
     pseudoHeader->setDestAddress(destAddress);
     pseudoHeader->setNetworkProtocolId(networkProtocol->getId());
     pseudoHeader->setProtocolId(IP_PROT_UDP);
-    pseudoHeader->setPacketLength(udpHeader->getChunkLength() + udpData->getChunkLength());
+    ASSERT(udpHeader->getChunkLength() + udpData->getChunkLength() >= b(length));
+    pseudoHeader->setPacketLength(length);
     // pseudoHeader length: ipv4: 12 bytes, ipv6: 40 bytes, other: ???
     if (networkProtocol == &Protocol::ipv4)
         pseudoHeader->setChunkLength(B(12));
@@ -848,10 +878,15 @@ uint16_t Udp::computeCrc(const Protocol *networkProtocol, const L3Address& srcAd
     else
         throw cRuntimeError("Unknown network protocol: %s", networkProtocol->getName());
 
+    B payloadCrcLen = udpHeader->getTotalLengthField();
+    if (udpLiteMode && payloadCrcLen == B(0))
+        payloadCrcLen = length;
+    payloadCrcLen -= udpHeader->getChunkLength();
     MemoryOutputStream stream;
     Chunk::serialize(stream, pseudoHeader);
     Chunk::serialize(stream, udpHeader);
-    Chunk::serialize(stream, udpData);
+    if (payloadCrcLen > b(0))
+        Chunk::serialize(stream, udpData, B(0), udpHeader->getTotalLengthField() - udpHeader->getChunkLength());
     uint16_t crc = TcpIpChecksum::checksum(stream.getData());
 
     // Excerpt from RFC 768:
@@ -927,10 +962,14 @@ void Udp::processUDPPacket(Packet *udpPacket)
     auto srcAddr = l3AddressInd->getSrcAddress();
     auto destAddr = l3AddressInd->getDestAddress();
     auto totalLength = B(udpHeader->getTotalLengthField());
-    auto hasIncorrectLength = totalLength<udpHeader->getChunkLength() || totalLength> udpHeader->getChunkLength() + udpPacket->getDataLength();
+#ifdef UDPLite
+    if (totalLength == b(0))
+        totalLength = udpHeader->getChunkLength() + udpPacket->getDataLength();         // jumbo frame, see RFC 3828, 3.5.
+#endif
+    auto hasIncorrectLength = totalLength < udpHeader->getChunkLength() || totalLength > udpHeader->getChunkLength() + udpPacket->getDataLength();
     auto networkProtocol = udpPacket->getTag<NetworkProtocolInd>()->getProtocol();
 
-    if (hasIncorrectLength || !verifyCrc(networkProtocol, udpHeader, udpPacket)) {
+    if (hasIncorrectLength || !verifyCrc(networkProtocol, udpHeader, udpPacket, udpLiteMode)) {
         EV_WARN << "Packet has bit error, discarding\n";
         PacketDropDetails details;
         details.setReason(INCORRECTLY_RECEIVED);
@@ -941,7 +980,7 @@ void Udp::processUDPPacket(Packet *udpPacket)
     }
 
     // remove lower layer paddings:
-    if (totalLength < udpPacket->getDataLength()) {
+    if (!udpLiteMode && totalLength < udpPacket->getDataLength()) {
         udpPacket->setBackOffset(udpHeaderPopPosition + totalLength);
     }
 
@@ -957,6 +996,15 @@ void Udp::processUDPPacket(Packet *udpPacket)
             return;
         }
         else {
+            if (udpLiteMode && sd->udpliteRecvCsCov != B(0) && sd->udpliteRecvCsCov > totalLength) {
+                EV_WARN << "Packet udpliteRecvCsCov field too small, discarding\n";
+                PacketDropDetails details;
+                details.setReason(INCORRECTLY_RECEIVED);
+                emit(packetDroppedSignal, udpPacket, &details);
+                numDroppedBadChecksum++;
+                delete udpPacket;
+                return;
+            }
             sendUp(udpHeader, udpPacket, sd, srcPort, destPort);
         }
     }
@@ -970,17 +1018,24 @@ void Udp::processUDPPacket(Packet *udpPacket)
             return;
         }
         else {
-            unsigned int i;
-            for (i = 0; i < sds.size() - 1; i++) // sds.size() >= 1
-                sendUp(udpHeader, udpPacket->dup(), sds[i], srcPort, destPort); // dup() to all but the last one
-            sendUp(udpHeader, udpPacket, sds[i], srcPort, destPort); // send original to last socket
+            for (auto sd: sds) {
+                if (udpLiteMode && sd->udpliteRecvCsCov != B(0) && sd->udpliteRecvCsCov > totalLength) {
+                    EV_WARN << "Packet udpliteRecvCsCov field too small for multicast socket " << sd->sockId << ", discarding\n";
+                }
+                else {
+                    sendUp(udpHeader, udpPacket->dup(), sd, srcPort, destPort);
+                }
+            }
+            delete udpPacket;    // drop original
         }
     }
 }
 
-bool Udp::verifyCrc(const Protocol *networkProtocol, const Ptr<const UdpHeader>& udpHeader, Packet *packet)
+bool Udp::verifyCrc(const Protocol *networkProtocol, const Ptr<const UdpHeader>& udpHeader, Packet *packet, bool udpLiteMode)
 {
     auto totalLength = udpHeader->getTotalLengthField();
+    if (udpLiteMode && totalLength == B(0))
+        totalLength = udpHeader->getChunkLength() + packet->getDataLength();
     if (totalLength < UDP_HEADER_LENGTH)
         return false;
 
@@ -998,6 +1053,9 @@ bool Udp::verifyCrc(const Protocol *networkProtocol, const Ptr<const UdpHeader>&
             return false;
         case CRC_COMPUTED: {
             if (udpHeader->getCrc() == 0x0000) {
+                // on udpLite, the CRC 0000 is invalid
+                if (udpLiteMode)
+                    return false;
                 // on udp under Ipv6, the CRC 0000 is invalid
                 if (networkProtocol == &Protocol::ipv6)
                     return false;
@@ -1010,7 +1068,7 @@ bool Udp::verifyCrc(const Protocol *networkProtocol, const Ptr<const UdpHeader>&
                 auto srcAddress = l3AddressInd->getSrcAddress();
                 auto destAddress = l3AddressInd->getDestAddress();
                 auto udpData = packet->peekDataAt(B(0), totalLength - udpHeader->getChunkLength(), Chunk::PF_ALLOW_EMPTY | Chunk::PF_ALLOW_INCORRECT);
-                auto computedCrc = computeCrc(networkProtocol, srcAddress, destAddress, udpHeader, udpData);
+                auto computedCrc = computeCrc(networkProtocol, srcAddress, destAddress, udpHeader, udpData, udpLiteMode);
                 // TODO delete these isCorrect calls, rely on CRC only
                 return computedCrc == 0xFFFF && udpHeader->isCorrect() && udpData->isCorrect();
             }
@@ -1349,19 +1407,18 @@ void Udp::refreshDisplay() const
 }
 
 // used in UdpProtocolDissector
-bool Udp::isCorrectPacket(Packet *packet, const Ptr<const UdpHeader>& udpHeader)
+bool Udp::isCorrectPacket(Packet *packet, const Ptr<const UdpHeader>& udpHeader, bool udpLiteMode)
 {
-    auto trailerPopOffset = packet->getBackOffset();
-    auto udpHeaderOffset = packet->getFrontOffset() - udpHeader->getChunkLength();
-    if (udpHeader->getTotalLengthField() < UDP_HEADER_LENGTH)
+    B length = udpLiteMode ? B(udpHeader->getChunkLength() + packet->getDataLength()) : udpHeader->getTotalLengthField();
+    if (udpHeader->getTotalLengthField() < UDP_HEADER_LENGTH || udpHeader->getTotalLengthField() > UDP_HEADER_LENGTH + packet->getDataLength())
         return false;
-    else if (B(udpHeader->getTotalLengthField()) > trailerPopOffset - udpHeaderOffset)
+    else if (length < UDP_HEADER_LENGTH || length > UDP_HEADER_LENGTH + packet->getDataLength())
         return false;
     else {
         const auto& l3AddressInd = packet->findTag<L3AddressInd>();
         const auto& networkProtocolInd = packet->findTag<NetworkProtocolInd>();
         if (l3AddressInd != nullptr && networkProtocolInd != nullptr)
-            return verifyCrc(networkProtocolInd->getProtocol(), udpHeader, packet);
+            return verifyCrc(networkProtocolInd->getProtocol(), udpHeader, packet, udpLiteMode);
         else
             return udpHeader->getCrcMode() != CrcMode::CRC_DECLARED_INCORRECT;
     }
@@ -1474,14 +1531,14 @@ INetfilter::IHook::Result UdpCrcInsertionHook::datagramPostRoutingHook(Packet *p
 
     auto networkProtocol = packet->getTag<PacketProtocolTag>()->getProtocol();
     const auto& networkHeader = getNetworkProtocolHeader(packet);
-    if (networkHeader->getProtocol() == &Protocol::udp) {
+    if ( networkHeader->getProtocol() == (udpLiteMode ? &Protocol::udpLite : &Protocol::udp) ) {
         ASSERT(!networkHeader->isFragment());
         packet->eraseAtFront(networkHeader->getChunkLength());
         auto udpHeader = packet->removeAtFront<UdpHeader>();
         ASSERT(udpHeader->getCrcMode() == CRC_COMPUTED);
         const L3Address& srcAddress = networkHeader->getSourceAddress();
         const L3Address& destAddress = networkHeader->getDestinationAddress();
-        Udp::insertCrc(networkProtocol, srcAddress, destAddress, udpHeader, packet);
+        Udp::insertCrc(networkProtocol, srcAddress, destAddress, udpHeader, packet, udpLiteMode);
         packet->insertAtFront(udpHeader);
         packet->insertAtFront(networkHeader);
     }

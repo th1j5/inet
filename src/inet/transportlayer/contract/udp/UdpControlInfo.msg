@@ -42,6 +42,8 @@ enum UdpSetOptionSubcode
     UDP_C_SETOPTION_UNBLOCK_MCAST_SRC = 12;
     UDP_C_SETOPTION_LEAVE_MCAST_SRC = 13;
     UDP_C_SETOPTION_SET_MCAST_SRC_FILTER = 14;
+    UDPLITE_C_SETOPTION_SET_SEND_CSCOV = 101;
+    UDPLITE_C_SETOPTION_SET_RECV_CSCOV = 102;
 }
 
 //
@@ -367,3 +369,16 @@ class UdpSetMulticastSourceFilterCommand extends UdpSetOptionCommand
     UdpSourceFilterMode filterMode;
     L3Address sourceList[];
 }
+
+class UdpLiteSetSendCsCovCommand extends UdpSetOptionCommand
+{
+    optionCode = UDPLITE_C_SETOPTION_SET_SEND_CSCOV;
+    uint16_t sendCsCov = 0;   // 0: entire packet, 1-7: illegal, 8-65535: valid
+}
+
+class UdpLiteSetRecvCsCovCommand extends UdpSetOptionCommand
+{
+    optionCode = UDPLITE_C_SETOPTION_SET_RECV_CSCOV;
+    uint16_t recvCsCov = 0;   // 0: entire packet, 1-7: illegal, 8-65535: valid
+}
+

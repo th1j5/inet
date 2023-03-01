@@ -54,12 +54,13 @@ import inet.transportlayer.contract.IUdp;
 //
 // @see ~UdpHeader, ~UdpControlInfo, ~UdpCommandCode
 //
-simple Udp like IUdp
+simple UdpBase like IUdp
 {
     parameters:
         string interfaceTableModule;   // The path to the InterfaceTable module
         string icmpModule = default("^.ipv4.icmp");
         string icmpv6Module = default("^.ipv6.icmpv6");
+        bool udpLiteMode;
         string crcMode @enum("disabled", "declared", "computed") = default("declared");
         bool defaultMulticastLoop = default(true);
         @display("i=block/transport");
@@ -87,5 +88,19 @@ simple Udp like IUdp
 
 simple UdpCrcInsertionHook
 {
+}
+
+simple Udp extends UdpBase
+{
+    parameters:
+        @class(::inet::Udp);
+        udpLiteMode = false;
+}
+
+simple UdpLite extends UdpBase
+{
+    parameters:
+        @class(::inet::Udp);
+        udpLiteMode = true;
 }
 

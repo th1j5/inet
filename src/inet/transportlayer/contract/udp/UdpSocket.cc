@@ -307,7 +307,7 @@ void UdpSocket::sendToUDP(cMessage *msg)
         throw cRuntimeError("UdpSocket: setOutputGate() must be invoked before socket can be used");
     EV_DEBUG << "Sending to UDP protocol" << EV_FIELD(msg) << EV_ENDL;
     auto& tags = check_and_cast<ITaggedObject *>(msg)->getTags();
-    tags.addTagIfAbsent<DispatchProtocolReq>()->setProtocol(&Protocol::udp);
+    tags.addTagIfAbsent<DispatchProtocolReq>()->setProtocol(&getProtocol());
     tags.addTagIfAbsent<SocketReq>()->setSocketId(socketId);
     check_and_cast<cSimpleModule *>(gateToUdp->getOwnerModule())->send(msg, gateToUdp);
 }
@@ -375,6 +375,28 @@ bool UdpSocket::belongsToSocket(cMessage *msg) const
     auto& tags = check_and_cast<ITaggedObject *>(msg)->getTags();
     const auto& socketInd = tags.findTag<SocketInd>();
     return socketInd != nullptr && socketInd->getSocketId() == socketId;
+}
+
+void UdpSocket::setSendCsCov(int cov)
+{
+    if (!protocol || *protocol != Protocol::udpLite)
+        throw cRuntimeError("invalid protocol for setSendCsCov: %s", protocol ? protocol->getName() : "<nullptr>");
+    auto request = new Request("setSendCsCov", UDP_C_SETOPTION);
+    auto *ctrl = new UdpLiteSetSendCsCovCommand();
+    ctrl->setSendCsCov(cov);
+    request->setControlInfo(ctrl);
+    sendToUDP(request);
+}
+
+void UdpSocket::setRecvCsCov(int cov)
+{
+    if (!protocol || *protocol != Protocol::udpLite)
+        throw cRuntimeError("invalid protocol for setSendCsCov: %s", protocol ? protocol->getName() : "<nullptr>");
+    auto request = new Request("setSendCsCov", UDP_C_SETOPTION);
+    auto *ctrl = new UdpLiteSetRecvCsCovCommand();
+    ctrl->setRecvCsCov(cov);
+    request->setControlInfo(ctrl);
+    sendToUDP(request);
 }
 
 } // namespace inet

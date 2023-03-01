@@ -22,7 +22,7 @@ void UdpProtocolDissector::dissect(Packet *packet, const Protocol *protocol, ICa
     auto udpHeaderOffset = packet->getFrontOffset();
     auto header = packet->popAtFront<UdpHeader>();
     callback.startProtocolDataUnit(&Protocol::udp);
-    bool isCorrectPacket = Udp::isCorrectPacket(packet, header);
+    bool isCorrectPacket = Udp::isCorrectPacket(packet, header, false);
     if (!isCorrectPacket)
         callback.markIncorrect();
     callback.visitChunk(header, &Protocol::udp);
