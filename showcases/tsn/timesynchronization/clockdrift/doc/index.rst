@@ -82,7 +82,7 @@ compensation factor is set based on the last two time synchronization events.
 The Model and Results
 ---------------------
 
-The showcase contains four example simulations. All simulations use the following network:
+The showcase contains several example simulations. All simulations use the following network:
 
 .. figure:: media/Network2.png
    :align: center
